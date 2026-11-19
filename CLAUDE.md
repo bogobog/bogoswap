@@ -6,8 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 BogoSwap is a MacroQuest Lua automation tool for EverQuest. It runs inside MacroQuest's LuaJIT, one instance per character. The user-facing documentation is `lua/bogoswap/README.md`.
 
-@docs/architecture.md
-@docs/decisions.md
+**Status: pre-implementation.** `docs/concept.md` is the spec; nothing under `lua/`, `tests/` or `config/` exists yet. The paths and commands below describe the intended structure.
+
+@docs/concept.md
+
+The config keys in `docs/concept.md` (`TriggerEffectName`, `SwapEquipmentSlot`, `MatchItemName`, `NoMatchItemName`) are canonical: slash commands, the ImGui panel and the config file all use these exact names.
 
 ## How to work with me
 
@@ -26,10 +29,10 @@ BogoSwap is a MacroQuest Lua automation tool for EverQuest. It runs inside Macro
 
 ## Testing
 
-Run the suite from the repository root with LuaJIT, plus `luafilesystem`:
+To be built. Once it exists, run the suite from the repository root with LuaJIT, plus `luafilesystem`:
 
     luajit tests/run.lua                 # everything
-    luajit tests/run.lua dps_test        # one test
+    luajit tests/run.lua swap_test       # one test
     luajit tests/run.lua --update        # record snapshots (first run, or after an intended output change)
 
 The tests use a mock MacroQuest (`tests/mock.lua` and per-test mocks), so they can't prove game behavior. Anything game-facing that hasn't been checked belongs in `docs/ingame-checks.md`. See `tests/README.md` for how to add a test.
@@ -39,5 +42,5 @@ The tests use a mock MacroQuest (`tests/mock.lua` and per-test mocks), so they c
 - `lua/bogoswap/init.lua`: startup, the main loop.
 - `lua/bogoswap/core/`: shared systems.
 - `lua/bogoswap/ui/`: the control panel.
-- `config/bogoswap/`: user configuration files.
+- `config/bogoswap/`: default configuration files, which are copied to `<MQ config>/BogoSwap/` at runtime.
 - `tests/`: the runner, the mock, the test scripts and the fixtures.
