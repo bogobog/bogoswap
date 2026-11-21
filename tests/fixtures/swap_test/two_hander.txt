@@ -1,0 +1,19 @@
+[BogoSwap] #2 cmd started running (pause=no)
+[BogoSwap] v0.1.0 started and running (pause=no). /bogoswap pause to pause.
+[BogoSwap] /bogoswap help lists commands.
+[BogoSwap] #3 swap 'Spirit of Wolf' absent; mainhand holds 'Fine Steel Sword' as wanted
+[BogoSwap] #4 swap 'Spirit of Wolf' present (buff); 'Greatstaff' is two-handed, so offhand 'Round Shield' comes off first
+[BogoSwap] #4 swap remembering offhand 'Round Shield' to restore later
+[BogoSwap] #4 swap command: /unequip offhand
+[BogoSwap] #4 swap verified: offhand is now empty
+[BogoSwap] #5 swap 'Spirit of Wolf' present (buff); mainhand holds 'Fine Steel Sword', want 'Greatstaff'
+[BogoSwap] #5 swap command: /exchange "Greatstaff" mainhand
+[BogoSwap] #5 swap verified: mainhand now holds 'Greatstaff'
+[BogoSwap] #6 swap 'Spirit of Wolf' present (buff); mainhand holds 'Greatstaff' as wanted
+[BogoSwap] #7 swap 'Spirit of Wolf' absent; mainhand holds 'Greatstaff', want 'Fine Steel Sword'
+[BogoSwap] #7 swap command: /exchange "Fine Steel Sword" mainhand
+[BogoSwap] #7 swap verified: mainhand now holds 'Fine Steel Sword'
+[BogoSwap] #8 swap 'Fine Steel Sword' is one-handed; restoring remembered offhand 'Round Shield'
+[BogoSwap] #8 swap command: /exchange "Round Shield" offhand
+[BogoSwap] #8 swap verified: offhand now holds 'Round Shield'
+[BogoSwap] #9 swap 'Spirit of Wolf' absent; mainhand holds 'Fine Steel Sword' as wanted

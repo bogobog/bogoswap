@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 BogoSwap is a MacroQuest Lua automation tool for EverQuest. It runs inside MacroQuest's LuaJIT, one instance per character. The user-facing documentation is `lua/bogoswap/README.md`.
 
-**Status: pre-implementation.** `docs/concept.md` is the spec; nothing under `lua/`, `tests/` or `config/` exists yet. The paths and commands below describe the intended structure.
+**Status: v0.1.0 implemented, not yet verified in game.** `docs/concept.md` is the spec; `docs/ingame-checks.md` lists what still needs checking in game.
 
 @docs/concept.md
 
@@ -29,7 +29,7 @@ The config keys in `docs/concept.md` (`TriggerEffectName`, `SwapEquipmentSlot`, 
 
 ## Testing
 
-To be built. Once it exists, run the suite from the repository root with LuaJIT, plus `luafilesystem`:
+Run the suite from the repository root with LuaJIT, plus `luafilesystem`:
 
     luajit tests/run.lua                 # everything
     luajit tests/run.lua swap_test       # one test

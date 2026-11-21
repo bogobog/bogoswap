@@ -1,0 +1,17 @@
+[BogoSwap] #2 cmd started running (pause=no)
+[BogoSwap] v0.1.0 started and running (pause=no). /bogoswap pause to pause.
+[BogoSwap] /bogoswap help lists commands.
+[BogoSwap] #3 swap 'Spirit of Wolf' absent; mainhand holds nothing, want 'Rusty Sword'
+[BogoSwap] #3 swap command: /exchange "Rusty Sword" mainhand
+[BogoSwap] #3 swap verified: mainhand now holds 'Rusty Sword'
+[BogoSwap] #4 swap 'Spirit of Wolf' absent; mainhand holds 'Rusty Sword' as wanted
+[BogoSwap] #5 swap 'Spirit of Wolf' present (buff); mainhand holds 'Rusty Sword', want 'Fine Steel Sword'
+[BogoSwap] #5 swap command: /exchange "Fine Steel Sword" mainhand
+[BogoSwap] #5 swap verified: mainhand now holds 'Fine Steel Sword'
+[BogoSwap] #6 swap 'Spirit of Wolf' present (buff); mainhand holds 'Fine Steel Sword' as wanted
+[BogoSwap] #7 swap 'Spirit of Wolf' absent; mainhand holds 'Fine Steel Sword', want 'Rusty Sword'
+[BogoSwap] #7 swap command: /exchange "Rusty Sword" mainhand
+[BogoSwap] #7 swap verified: mainhand now holds 'Rusty Sword'
+[BogoSwap] #8 swap 'Spirit of Wolf' absent; mainhand holds 'Rusty Sword' as wanted
+[BogoSwap] #9 cmd quit requested
+[BogoSwap] Stopped.

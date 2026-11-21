@@ -1,0 +1,70 @@
+local setup = require('setup')
+
+local function deepEq(a, b, path, t)
+    if type(a) == 'table' and type(b) == 'table' then
+        for k, v in pairs(a) do deepEq(v, b[k], path .. '.' .. tostring(k), t) end
+        for k in pairs(b) do t.ok(a[k] ~= nil, path .. '.' .. tostring(k) .. ' missing') end
+        return
+    end
+    t.eq(a, b, path)
+end
+
+test('config/bogoswap/defaults.lua matches the built-in defaults', function(m, t)
+    local config = require('bogoswap.core.config')
+    deepEq(dofile('config/bogoswap/defaults.lua'), config.BUILTIN_DEFAULTS, 'defaults', t)
+end)
+
+test('first run creates defaults and the character file', function(m, t)
+    m.start()
+    local f = io.open(m.tmpdir .. '/BogoSwap/defaults.lua')
+    t.ok(f, 'defaults.lua written')
+    f:close()
+    local cfg = setup.readConfig(m)
+    t.eq(cfg.TriggerEffectName, '')
+    t.eq(cfg.TickMs, 250)
+    t.contains(m.output(), 'Created ')
+end)
+
+test('an edited defaults.lua is used for new characters', function(m, t)
+    local lfs = require('lfs')
+    lfs.mkdir(m.tmpdir .. '/BogoSwap')
+    local f = io.open(m.tmpdir .. '/BogoSwap/defaults.lua', 'w')
+    f:write("return { TriggerEffectName = 'Haste', RetryMs = 5000 }")
+    f:close()
+    m.start()
+    local cfg = setup.readConfig(m)
+    t.eq(cfg.TriggerEffectName, 'Haste')
+    t.eq(cfg.RetryMs, 5000)
+    t.eq(cfg.SettleMs, 750, 'missing keys filled')
+end)
+
+test('a corrupt character file is moved aside', function(m, t)
+    local lfs = require('lfs')
+    lfs.mkdir(m.tmpdir .. '/BogoSwap')
+    local f = io.open(setup.configPath(m), 'w')
+    f:write('return {')
+    f:close()
+    m.start()
+    t.contains(m.output(), '.bad')
+    t.ok(io.open(setup.configPath(m) .. '.bad'), 'backup kept')
+    t.eq(setup.readConfig(m).TickMs, 250)
+end)
+
+test('unknown keys are dropped, wrong types and bad slots reset', function(m, t)
+    setup.writeConfig(m, {})
+    local f = io.open(setup.configPath(m), 'w')
+    f:write("return { Junk = 1, TickMs = 'fast', SwapEquipmentSlot = 'elbow', MatchItemName = 'Rusty Sword', TickMs2 = 3 }")
+    f:close()
+    m.start()
+    local cfg = setup.readConfig(m)
+    t.eq(cfg.Junk, nil)
+    t.eq(cfg.TickMs, 250)
+    t.eq(cfg.SwapEquipmentSlot, '')
+    t.eq(cfg.MatchItemName, 'Rusty Sword')
+    t.contains(m.output(), 'SwapEquipmentSlot "elbow" in the config file is not a slot name')
+end)
+
+test('each character gets its own file', function(m, t)
+    local config = require('bogoswap.core.config')
+    t.eq(config.charFile('Test Server', 'Bob'), m.tmpdir .. '/BogoSwap/Test_Server_Bob.lua')
+end)
