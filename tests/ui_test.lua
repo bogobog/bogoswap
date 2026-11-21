@@ -29,6 +29,24 @@ test('the pause button toggles', function(m, t)
     t.eq(m.world.slots.mainhand, 'Rusty Sword', 'paused again')
 end)
 
+test('the pause button is blue while paused and green while running', function(m, t)
+    local panel = require('bogoswap.ui.panel')
+    local function same(a, b)
+        for i = 1, 4 do if a[i] ~= b[i] then return false end end
+        return true
+    end
+    m.start()
+    m.frame()
+    t.ok(same(m.ui.lastButtonColor, panel.BUTTON_PAUSED[1]), 'blue while paused')
+    m.command('/bogoswap resume')
+    m.frame()
+    t.ok(same(m.ui.lastButtonColor, panel.BUTTON_RUNNING[1]), 'green while running')
+    m.ui.clicks['Pause##pause'] = true
+    m.frame()
+    m.frame()
+    t.ok(same(m.ui.lastButtonColor, panel.BUTTON_PAUSED[1]), 'blue after clicking Pause')
+end)
+
 test('text inputs apply on Enter only', function(m, t)
     m.start()
     m.ui.inputs['TriggerEffectName##TriggerEffectName'] = { 'Haste', false }

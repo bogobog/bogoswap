@@ -1,5 +1,5 @@
 [BogoSwap] #2 cmd started running (pause=no)
-[BogoSwap] v0.1.0 started and running (pause=no). /bogoswap pause to pause.
+[BogoSwap] v<VERSION> started and running (pause=no). /bogoswap pause to pause.
 [BogoSwap] /bogoswap help lists commands.
 [BogoSwap] #3 swap 'Spirit of Wolf' absent; mainhand holds 'Fine Steel Sword' as wanted
 [BogoSwap] #4 swap 'Spirit of Wolf' present (buff); 'Greatstaff' is two-handed, so offhand 'Round Shield' comes off first

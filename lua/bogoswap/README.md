@@ -91,7 +91,7 @@ When the slot is `offhand` and a two-hander is in mainhand, BogoSwap can't swap,
 
 The window has:
 
-- a Pause/Resume button,
+- a Pause/Resume button, green while BogoSwap is running and blue while it's paused,
 - the effect's state, what the slot holds, and what BogoSwap wants there,
 - the current status and the last action,
 - the four settings.

@@ -41,3 +41,4 @@ Tick each one off once it's confirmed, and note anything that turned out differe
 - [ ] `InputText` with `EnterReturnsTrue` returns the text being typed plus `true` on Enter.
 - [ ] Clicking an entry in the slot combo selects it (detected with `IsItemClicked`).
 - [ ] Tooltips appear on hover.
+- [ ] `ImGui.PushStyleColor(ImGuiCol.Button, r, g, b, a)` (four floats) is accepted. The pause button is blue while paused and green while running, with lighter/darker shades on hover/click, and nothing else in the window changes colour.

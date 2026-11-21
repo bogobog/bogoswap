@@ -178,7 +178,8 @@ function M.new()
     env.mq = mq
 
     -- ImGui: env.ui scripts what the next frame's widgets return.
-    local ui = { clicks = {}, inputs = {}, texts = {}, calls = {}, openCombo = nil, hover = nil, closeWindow = false }
+    local ui = { clicks = {}, inputs = {}, texts = {}, calls = {}, colorStack = {},
+        openCombo = nil, hover = nil, closeWindow = false }
     env.ui = ui
     local lastItem
     local function consume(label)
@@ -210,6 +211,18 @@ function M.new()
         IsItemClicked = function() return consume(lastItem) end,
         IsItemHovered = function() return ui.hover ~= nil and ui.hover == lastItem end,
         SetTooltip = function() error('ImGui.SetTooltip must not be used (MacroQuest formats its text)') end,
+        PushStyleColor = function(idx, r, g, b, a)
+            assert(type(idx) == 'number', 'PushStyleColor needs an ImGuiCol value')
+            ui.colorStack[#ui.colorStack + 1] = { idx, r, g, b, a }
+        end,
+        PopStyleColor = function(count)
+            count = count or 1
+            assert(count <= #ui.colorStack, 'PopStyleColor pops more than was pushed')
+            for _ = 1, count do
+                local c = table.remove(ui.colorStack)
+                if c[1] == _G.ImGuiCol.Button then ui.lastButtonColor = { c[2], c[3], c[4], c[5] } end
+            end
+        end,
     }
     env.ImGui = ImGui
 
@@ -218,6 +231,7 @@ function M.new()
     package.loaded.ImGui = ImGui
     _G.ImGui = ImGui
     _G.ImGuiInputTextFlags = { EnterReturnsTrue = 32 }
+    _G.ImGuiCol = { Button = 21, ButtonHovered = 22, ButtonActive = 23 }
     env.savedPrint = print
     _G.print = function(...)
         local parts = {}
@@ -256,8 +270,11 @@ function M.new()
     function env.frame()
         ui.texts = {}
         ui.calls = {}
+        ui.colorStack = {}
+        ui.lastButtonColor = nil
         assert(env.draw, 'no imgui callback registered')
         env.draw()
+        assert(#ui.colorStack == 0, 'PushStyleColor without matching PopStyleColor')
     end
     function env.output()
         local lines = {}

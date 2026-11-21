@@ -31,6 +31,14 @@ local TIPS = {
     NoMatchItemName = 'Item to equip while the effect is absent (exact name). Press Enter to apply.',
 }
 
+-- Pause button colours: green while running, blue while paused.
+-- Each list is normal, hovered, active (RGBA, 0-1).
+local BUTTON_COLS = { 'Button', 'ButtonHovered', 'ButtonActive' }
+local BUTTON_RUNNING = { { 0.13, 0.55, 0.13, 1 }, { 0.18, 0.68, 0.18, 1 }, { 0.10, 0.45, 0.10, 1 } }
+local BUTTON_PAUSED = { { 0.15, 0.35, 0.75, 1 }, { 0.22, 0.45, 0.88, 1 }, { 0.11, 0.27, 0.62, 1 } }
+M.BUTTON_RUNNING = BUTTON_RUNNING
+M.BUTTON_PAUSED = BUTTON_PAUSED
+
 local function drawInput(state, key)
     local ui = state.ui
     if ui.seen[key] ~= state.cfg[key] then
@@ -96,7 +104,14 @@ function M.draw(state)
         log.debug('ui', n, 'window closed; /bogoswap ui reopens it')
     end
     if show then
-        if ImGui.Button(state.paused and 'Resume##pause' or 'Pause##pause') then
+        local colors = state.paused and BUTTON_PAUSED or BUTTON_RUNNING
+        for i, col in ipairs(BUTTON_COLS) do
+            local c = colors[i]
+            ImGui.PushStyleColor(ImGuiCol[col], c[1], c[2], c[3], c[4])
+        end
+        local clicked = ImGui.Button(state.paused and 'Resume##pause' or 'Pause##pause')
+        ImGui.PopStyleColor(#BUTTON_COLS)
+        if clicked then
             commands.setPaused(state, not state.paused, 'ui')
         end
         tip(state.paused and 'BogoSwap is paused. Click to start swapping.'

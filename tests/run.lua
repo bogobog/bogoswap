@@ -68,7 +68,8 @@ local function asserts(base, caseName)
     function t.snapshot(name, text)
         local dir = 'tests/fixtures/' .. base
         local path = dir .. '/' .. name .. '.txt'
-        text = text .. '\n'
+        -- Version bumps shouldn't invalidate snapshots.
+        text = text:gsub('v%d+%.%d+%.%d+', 'v<VERSION>') .. '\n'
         if UPDATE then
             lfs.mkdir('tests/fixtures')
             lfs.mkdir(dir)
