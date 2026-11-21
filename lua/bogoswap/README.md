@@ -99,8 +99,8 @@ The window has:
 - the four settings, one per row, with the label on the left and the field filling the rest of the row. Trigger Found Item and Trigger Missing Item are item pickers:
   - Each lists the items in your bags, plus the item worn in the slot, that fit `SwapEquipmentSlot` and that your character can use.
   - Duplicates appear once, and two-handers are tagged "(2H)" when the slot is `mainhand`.
-  - Type in the search box at the top to narrow the list. "(none)" clears the setting.
-  - Your bags are read each time you open a picker. Click **Refresh** if they change while it's open.
+  - "(none)" at the top clears the setting.
+  - Your bags are read each time you open a picker, so the list is always current.
   - If the chosen item isn't in your bags, can't be worn in the slot, or you can't use it, the picker says so next to its name.
   - Choose an Equipment Slot first; until then the pickers are greyed out and say so.
   - To set an item that isn't in your bags right now, use `/bogoswap set`.

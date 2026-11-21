@@ -67,17 +67,18 @@ test('picking an item saves it; (none) clears it', function(m, t)
     t.eq(setup.readConfig(m).MatchItemName, '')
 end)
 
-test('the search box narrows the list', function(m, t)
+test('the dropdown has no search box or Refresh button', function(m, t)
     bagsAndCharm(m)
     m.start()
     m.ui.openCombo = MATCH
-    m.ui.inputs['Search##search_MatchItemName'] = { 'SWORD', true }
     m.frame()
-    t.eq(offered(m, 'MatchItemName'), 'Fine Steel Sword, Rusty Sword')
-    m.ui.inputs['Search##search_MatchItemName'] = { 'zzz', true }
-    m.frame()
-    t.eq(offered(m, 'MatchItemName'), '')
-    t.contains(table.concat(m.ui.texts, '\n'), 'No match.')
+    for label in pairs(m.ui.widths) do
+        t.ok(not label:find('search', 1, true), 'no search field: ' .. label)
+    end
+    for _, c in ipairs(m.ui.calls) do
+        t.ok(not c:find('Refresh', 1, true), 'no Refresh button: ' .. c)
+    end
+    t.eq(m.ui.selectables[1], '(none)##pick_MatchItemName_none', '(none) comes first')
 end)
 
 test('an empty list says nothing fits', function(m, t)
@@ -90,7 +91,7 @@ test('an empty list says nothing fits', function(m, t)
     t.contains(table.concat(m.ui.texts, '\n'), 'Nothing in your bags fits ammo.')
 end)
 
-test('the inventory is scanned on open and on Refresh only', function(m, t)
+test('the inventory is scanned each time a picker opens, and only then', function(m, t)
     bagsAndCharm(m)
     m.start()
     m.run(500)
@@ -104,16 +105,13 @@ test('the inventory is scanned on open and on Refresh only', function(m, t)
     t.eq(m.packScans, 1, 'one scan while open')
     table.insert(m.world.bags, 'Pitchfork')
     m.item('Pitchfork', '2H Piercing', { 'mainhand' })
-    m.ui.clicks['Refresh##refresh_MatchItemName'] = true
-    m.frame()
-    t.eq(m.packScans, 2, 'Refresh rescans')
-    m.frame()
-    t.contains(offered(m, 'MatchItemName'), 'Pitchfork (2H)')
     m.ui.openCombo = nil
     m.frame()
+    t.eq(m.packScans, 1, 'closing does not scan')
     m.ui.openCombo = MATCH
     m.frame()
-    t.eq(m.packScans, 3, 'reopening rescans')
+    t.eq(m.packScans, 2, 'reopening rescans')
+    t.contains(offered(m, 'MatchItemName'), 'Pitchfork (2H)', 'new item appears on reopen')
 end)
 
 test('the current value is shown and marked when it is not swappable', function(m, t)

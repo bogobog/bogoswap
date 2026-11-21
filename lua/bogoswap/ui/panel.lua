@@ -108,11 +108,10 @@ end
 local function choose(state, key, name)
     local ok, err = commands.setValue(state, key, name, 'ui')
     if not ok then log.err('%s', err) end
-    state.ui.search[key] = ''
 end
 
--- Item picker for MatchItemName / NoMatchItemName. The inventory is scanned when the
--- dropdown opens and when Refresh is clicked, never while it's closed.
+-- Item picker for MatchItemName / NoMatchItemName. The inventory is scanned each time
+-- the dropdown opens, never while it's closed.
 local function drawPicker(state, key)
     local ui = state.ui
     local slot = state.cfg.SwapEquipmentSlot
@@ -133,25 +132,16 @@ local function drawPicker(state, key)
             scan(state, 'opened ' .. key .. ' picker')
         end
         ui.pickerOpen[key] = true
-        local s = ImGui.InputText('Search##search_' .. key, ui.search[key] or '')
-        if s ~= nil then ui.search[key] = s end
-        ImGui.SameLine()
-        if ImGui.Button('Refresh##refresh_' .. key) then scan(state, 'Refresh clicked') end
         ImGui.Selectable('(none)##pick_' .. key .. '_none', cur == '')
         if ImGui.IsItemClicked() then choose(state, key, '') end
-        local filter = (ui.search[key] or ''):lower()
-        local shown = 0
         for _, it in ipairs(ui.candidates.items) do
-            if filter == '' or it.name:lower():find(filter, 1, true) then
-                shown = shown + 1
-                local tag = (slot == 'mainhand' and swap.isTwoHander(it)) and ' (2H)' or ''
-                ImGui.Selectable(it.name .. tag .. '##pick_' .. key .. '_' .. it.name,
-                    it.name:lower() == cur:lower())
-                if ImGui.IsItemClicked() then choose(state, key, it.name) end
-            end
+            local tag = (slot == 'mainhand' and swap.isTwoHander(it)) and ' (2H)' or ''
+            ImGui.Selectable(it.name .. tag .. '##pick_' .. key .. '_' .. it.name,
+                it.name:lower() == cur:lower())
+            if ImGui.IsItemClicked() then choose(state, key, it.name) end
         end
-        if shown == 0 then
-            text(#ui.candidates.items == 0 and ('Nothing in your bags fits ' .. slot .. '.') or 'No match.')
+        if #ui.candidates.items == 0 then
+            text('Nothing in your bags fits ' .. slot .. '.')
         end
         ImGui.EndCombo()
     else

@@ -46,7 +46,7 @@ Tick each one off once it's confirmed, and note anything that turned out differe
   - [ ] General inventory is `${Me.Inventory[23]}` to `${Me.Inventory[34]}` (pack1 to pack12). Bags report `Container` greater than 0, and `.Item[n]` reads their contents even when the bag is closed. Loose items in those slots report `Container` 0.
   - [ ] `${Me.Inventory[n].Item[j].WornSlot[mainhand]}` and `.CanUse` work on bag contents. `CanUse` is FALSE for items your class, race or level can't use.
   - [ ] Opening a picker with full bags doesn't cause a noticeable hitch.
-  - [ ] An `InputText` and a `Button` inside a combo dropdown work, and clicking Refresh doesn't close the dropdown.
+  - [ ] An item added to your bags shows up the next time you open the picker.
   - [ ] `ImGui.BeginDisabled` / `EndDisabled` exist, and the disabled pickers can't be opened.
 - [ ] The status section:
   - [ ] `ImGui.CollapsingHeader(label, ImGuiTreeNodeFlags.DefaultOpen)` starts open.
