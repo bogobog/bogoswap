@@ -111,7 +111,7 @@ Closing the window doesn't stop BogoSwap; `/bogoswap ui` brings it back.
 
 ## Debug log
 
-Every decision and action BogoSwap takes is numbered, and every log line about it carries the same number (`#12`). That lets you follow a swap from the reason for it, through the command it sent, to the check that it worked. Channels are off by default, and their on/off settings are saved.
+Every decision and action BogoSwap takes is numbered, and every log line about it carries the same number (`#12`). That lets you follow a swap from the reason for it, through the command it sent, to the check that it worked. Each debug line starts with the local time it was logged, as `[hh:mm:ss]`. Channels are off by default, and their on/off settings are saved.
 
 - `swap`: decisions, commands, verification
 - `guard`: why a swap is being held back

@@ -1,4 +1,5 @@
 -- Logging: user-facing messages plus debug channels with a shared action number.
+-- Debug lines start with the local time they were emitted, as [hh:mm:ss].
 --
 -- Every decision or action BogoSwap takes gets a number from nextAction(); every line
 -- logged about that action carries the same number, so "why did it do that" can be
@@ -58,7 +59,7 @@ end
 function M.debug(ch, n, f, ...)
     assert(known[ch], 'unknown log channel ' .. tostring(ch))
     if not enabled[ch] then return end
-    emit(string.format('%s\am#%d %s\ax %s', PREFIX, n, ch, fmt(f, ...)))
+    emit(string.format('\a-w[%s]\ax %s\am#%d %s\ax %s', os.date('%H:%M:%S'), PREFIX, n, ch, fmt(f, ...)))
 end
 
 -- Logs a status message under a new action number, but only when it differs from

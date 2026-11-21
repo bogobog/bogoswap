@@ -67,3 +67,4 @@ Tick each one off once it's confirmed, and note anything that turned out differe
   - [ ] Right-clicking BS toggles pause (`IsItemClicked(ImGuiMouseButton.Right)` after the button), turns it green or blue, and doesn't restore the window. A left click still restores it.
 - [ ] Clicking Stop ends the script cleanly: the window closes, `/bogoswap` is unbound, and `${BogoSwap}` is gone.
 - [ ] `ImGui.PushStyleColor(ImGuiCol.Button, r, g, b, a)` (four floats) is accepted. The pause button is blue while paused and green while running, with lighter/darker shades on hover/click, and nothing else in the window changes colour.
+- [ ] Debug lines start with a grey `[hh:mm:ss]` stamp in local time (`\a-w` renders as grey in the MQ console), before `[BogoSwap]`. Plain messages and numbered warnings have no stamp.

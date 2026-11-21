@@ -331,6 +331,15 @@ function M.new()
         for i = 1, select('#', ...) do parts[#parts + 1] = tostring((select(i, ...))) end
         env.out[#env.out + 1] = table.concat(parts, '\t')
     end
+    -- The wall clock follows game time, so timestamps in snapshots are stable.
+    env.savedDate = os.date
+    os.date = function(f, t)
+        if f == '%H:%M:%S' and t == nil then
+            local s = math.floor(env.now / 1000)
+            return string.format('%02d:%02d:%02d', math.floor(s / 3600) % 24, math.floor(s / 60) % 60, s % 60)
+        end
+        return env.savedDate(f, t)
+    end
 
     -- Runs lua/bogoswap/init.lua in a coroutine; each mq.delay is one step.
     function env.start(...)
@@ -390,6 +399,7 @@ function M.new()
     end
     function env.cleanup()
         _G.print = env.savedPrint
+        os.date = env.savedDate
         rmtree(tmp)
     end
 
