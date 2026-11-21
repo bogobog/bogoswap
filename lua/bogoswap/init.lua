@@ -4,7 +4,7 @@
 local mq = require('mq')
 require('ImGui')
 
-local VERSION = '0.4.0'
+local VERSION = '0.5.0'
 
 local log = require('bogoswap.core.log')
 local args = require('bogoswap.core.args')

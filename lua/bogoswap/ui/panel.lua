@@ -174,9 +174,17 @@ local function drawSlot(state)
     tip(TIPS.SwapEquipmentSlot)
 end
 
+-- One collapsible section. Its header is the Status line, so collapsing it leaves only
+-- Status showing; expanding it adds the details. The ### id keeps the open/closed
+-- state stable while the status text changes. It starts open.
 local function drawStatus(state)
     local cfg = state.cfg
     local s = state.snap or {}
+    local status = state.waiting or (state.decision and state.decision.reason) or 'starting'
+    -- '##' in the visible text would cut the label short.
+    local header = 'Status: ' .. status:gsub('##', '# #') .. '###bogoswap_status'
+    if not ImGui.CollapsingHeader(header, ImGuiTreeNodeFlags.DefaultOpen) then return end
+    tip('Click to show or hide the details.')
     if s.inGame then
         text(string.format('Effect: %s', s.effectWindow and ('present (' .. s.effectWindow .. ')') or 'absent'))
         text(string.format('%s holds: %s', cfg.SwapEquipmentSlot ~= '' and cfg.SwapEquipmentSlot or 'Slot',
@@ -186,7 +194,6 @@ local function drawStatus(state)
     if cfg.State.StashedOffhandItem ~= '' then
         text('Remembered offhand: ' .. cfg.State.StashedOffhandItem)
     end
-    text('Status: ' .. (state.waiting or (state.decision and state.decision.reason) or 'starting'))
     if state.lastAction then
         text(string.format('Last action: #%d %s', state.lastAction.n, state.lastAction.text))
     end

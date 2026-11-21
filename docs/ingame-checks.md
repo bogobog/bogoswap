@@ -48,5 +48,10 @@ Tick each one off once it's confirmed, and note anything that turned out differe
   - [ ] Opening a picker with full bags doesn't cause a noticeable hitch.
   - [ ] An `InputText` and a `Button` inside a combo dropdown work, and clicking Refresh doesn't close the dropdown.
   - [ ] `ImGui.BeginDisabled` / `EndDisabled` exist, and the disabled pickers can't be opened.
+- [ ] The status section:
+  - [ ] `ImGui.CollapsingHeader(label, ImGuiTreeNodeFlags.DefaultOpen)` starts open.
+  - [ ] Collapsing it leaves only the Status line.
+  - [ ] It stays collapsed while the status text changes (the label uses the stable id `###bogoswap_status`).
+  - [ ] A long status line is readable in the header, and an item name containing `%` shows correctly in it.
 - [ ] Clicking Stop ends the script cleanly: the window closes, `/bogoswap` is unbound, and `${BogoSwap}` is gone.
 - [ ] `ImGui.PushStyleColor(ImGuiCol.Button, r, g, b, a)` (four floats) is accepted. The pause button is blue while paused and green while running, with lighter/darker shades on hover/click, and nothing else in the window changes colour.

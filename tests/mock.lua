@@ -208,7 +208,7 @@ function M.new()
 
     -- ImGui: env.ui scripts what the next frame's widgets return.
     local ui = { clicks = {}, inputs = {}, texts = {}, calls = {}, colorStack = {},
-        buttonX = {}, cursorX = 8, windowWidth = 400,
+        buttonX = {}, cursorX = 8, windowWidth = 400, headers = {}, headerOpen = {},
         openCombo = nil, hover = nil, closeWindow = false }
     env.ui = ui
     local lastItem
@@ -251,6 +251,16 @@ function M.new()
             ui.previews[label] = preview
             return ui.openCombo == label and not ui.disabledDepth
         end,
+        -- Open unless the test sets ui.headerOpen[id] = false; DefaultOpen is required.
+        CollapsingHeader = function(label, flags)
+            lastItem = label
+            local shown, id = label:match('^(.-)###(.*)$')
+            assert(id, 'CollapsingHeader label needs a ### id: ' .. label)
+            assert(flags == _G.ImGuiTreeNodeFlags.DefaultOpen, 'CollapsingHeader should start open')
+            ui.texts[#ui.texts + 1] = shown
+            ui.headers[id] = shown
+            return ui.headerOpen[id] ~= false
+        end,
         BeginDisabled = function() ui.disabledDepth = true; ui.disabledUsed = true end,
         EndDisabled = function() ui.disabledDepth = nil end,
         Selectable = function(label, selected)
@@ -282,6 +292,7 @@ function M.new()
     _G.ImGui = ImGui
     _G.ImGuiInputTextFlags = { EnterReturnsTrue = 32 }
     _G.ImGuiCol = { Button = 21, ButtonHovered = 22, ButtonActive = 23 }
+    _G.ImGuiTreeNodeFlags = { DefaultOpen = 32 }
     env.savedPrint = print
     _G.print = function(...)
         local parts = {}
@@ -326,6 +337,7 @@ function M.new()
         ui.cursorX = 8
         ui.previews = {}
         ui.selectables = {}
+        ui.headers = {}
         ui.disabledUsed = false
         assert(env.draw, 'no imgui callback registered')
         env.draw()

@@ -93,8 +93,7 @@ The window has:
 
 - a Pause/Resume button, green while BogoSwap is running and blue while it's paused,
 - a Stop button at the right of the same row, which stops BogoSwap entirely, like `/bogoswap quit`,
-- the effect's state, what the slot holds, and what BogoSwap wants there,
-- the current status and the last action,
+- a collapsible status section. Its header is the current status. Expanding it (the default) also shows the effect's state, what the slot holds, what BogoSwap wants there, any remembered offhand item, and the last action. Collapsed, only the status line shows,
 - the four settings. `MatchItemName` and `NoMatchItemName` are item pickers:
   - Each lists the items in your bags, plus the item worn in the slot, that fit `SwapEquipmentSlot` and that your character can use.
   - Duplicates appear once, and two-handers are tagged "(2H)" when the slot is `mainhand`.

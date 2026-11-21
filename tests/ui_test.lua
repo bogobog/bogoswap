@@ -13,6 +13,43 @@ test('the window shows paused state and status', function(m, t)
     t.contains(texts(m), 'Wanted: Rusty Sword')
 end)
 
+test('status details collapse to just the Status line', function(m, t)
+    setup.swords(m, { State = { StashedOffhandItem = 'Round Shield' } })
+    m.world.slots = { mainhand = 'Rusty Sword' }
+    m.world.bags = { 'Fine Steel Sword', 'Round Shield' }
+    m.world.simulate = false -- the restore never lands, so the shield stays remembered
+    m.start('pause=no')
+    m.run(500)
+    m.frame()
+    local open = texts(m)
+    t.eq(m.ui.headers.bogoswap_status:sub(1, 8), 'Status: ', 'header is the Status line')
+    for _, want in ipairs({ 'Effect: absent', 'mainhand holds: ', 'Wanted: Rusty Sword',
+        'Remembered offhand: Round Shield', 'Last action: #' }) do
+        t.contains(open, want, 'expanded')
+    end
+    t.eq(setup.count(open, 'Status: '), 1, 'Status shown once')
+    m.ui.headerOpen.bogoswap_status = false
+    m.frame()
+    local closed = texts(m)
+    t.contains(closed, 'Status: ')
+    for _, gone in ipairs({ 'Effect:', 'holds:', 'Wanted:', 'Remembered offhand:', 'Last action:' }) do
+        t.notContains(closed, gone, 'collapsed')
+    end
+    t.contains(closed, 'Running', 'rest of the window still drawn')
+end)
+
+test('the status header keeps its id when the text changes', function(m, t)
+    setup.swords(m)
+    m.start()
+    m.run(500)
+    m.frame()
+    local before = m.ui.headers.bogoswap_status
+    m.command('/bogoswap resume')
+    m.run(500)
+    m.frame()
+    t.ok(m.ui.headers.bogoswap_status ~= before, 'text changed: ' .. before)
+end)
+
 test('the pause button toggles', function(m, t)
     setup.swords(m)
     m.start()
