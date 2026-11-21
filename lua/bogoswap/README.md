@@ -84,7 +84,7 @@ When the slot is `offhand` and a two-hander is in mainhand, BogoSwap can't swap,
 | `show` | Print settings, the current state and the config file path. |
 | `pause`, `resume`, `toggle` | Stop or start taking action. BogoSwap keeps watching while paused. |
 | `swapnow` | Check and swap once right now, even while paused or waiting to retry. |
-| `ui [on\|off]` | Show or hide the window. |
+| `ui [on\|off\|min]` | `ui` alone shows or hides the window, and also restores it from minimized. `on` shows the full window, `off` hides everything, and `min` minimizes to the BS button. |
 | `debug [<channel>\|all] [on\|off]` | List or switch debug channels. |
 | `quit` | Stop BogoSwap. |
 | `help` | List commands. |
@@ -94,7 +94,7 @@ When the slot is `offhand` and a two-hander is in mainhand, BogoSwap can't swap,
 The window has:
 
 - a Pause/Resume button, green while BogoSwap is running and blue while it's paused,
-- a Stop button at the right of the same row, which stops BogoSwap entirely, like `/bogoswap quit`,
+- a `_` (minimize) button and a Stop button at the right of the same row. Stop ends BogoSwap entirely, like `/bogoswap quit`,
 - a collapsible status section. Its header is the current status. Expanding it (the default) also shows the effect's state, what the slot holds, what BogoSwap wants there, any remembered offhand item, and the last action. Collapsed, only the status line shows,
 - the four settings, one per row, with the label on the left and the field filling the rest of the row. Trigger Found Item and Trigger Missing Item are item pickers:
   - Each lists the items in your bags, plus the item worn in the slot, that fit `SwapEquipmentSlot` and that your character can use.
@@ -106,6 +106,8 @@ The window has:
   - To set an item that isn't in your bags right now, use `/bogoswap set`.
 
 Closing the window doesn't stop BogoSwap; `/bogoswap ui` brings it back.
+
+`_` minimizes the window to a small **BS** button with no title bar. You can drag it anywhere, and it remembers where you put it. BS is green while BogoSwap is running and blue while it's paused. Click it to restore the full window, or right-click it to pause or resume without restoring the window. BogoSwap keeps working while minimized, and it always starts with the full window.
 
 ## Debug log
 

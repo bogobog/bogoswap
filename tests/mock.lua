@@ -207,7 +207,7 @@ function M.new()
     env.mq = mq
 
     -- ImGui: env.ui scripts what the next frame's widgets return.
-    local ui = { clicks = {}, inputs = {}, texts = {}, calls = {}, colorStack = {},
+    local ui = { clicks = {}, rightClicks = {}, inputs = {}, texts = {}, calls = {}, colorStack = {},
         buttonX = {}, cursorX = 8, windowWidth = 400, headers = {}, headerOpen = {},
         openCombo = nil, hover = nil, closeWindow = false }
     env.ui = ui
@@ -218,8 +218,10 @@ function M.new()
     end
     local function noop() end
     local ImGui = {
-        Begin = function(name, open)
+        Begin = function(name, open, flags)
             lastItem = name
+            ui.windows[#ui.windows + 1] = { name = name, flags = flags or 0, pos = ui.nextWindowPos }
+            ui.nextWindowPos = nil
             if ui.closeWindow then ui.closeWindow = false return false, true end
             return true, true
         end,
@@ -240,6 +242,10 @@ function M.new()
             ui.texts[#ui.texts + 1] = s
         end,
         AlignTextToFramePadding = noop,
+        SetNextWindowPos = function(pos, cond)
+            assert(type(pos) == 'table' and pos.x and pos.y, 'SetNextWindowPos needs an ImVec2')
+            ui.nextWindowPos = { x = pos.x, y = pos.y, cond = cond }
+        end,
         CalcTextSize = function(s) return { x = #s * 7, y = 13 } end,
         -- Records the width the next widget was given, keyed by that widget's label.
         SetNextItemWidth = function(w) ui.nextWidth = w end,
@@ -278,7 +284,18 @@ function M.new()
             ui.selectables[#ui.selectables + 1] = label
             return false
         end,
-        IsItemClicked = function() return consume(lastItem) end,
+        -- Left clicks come from ui.clicks, right clicks from ui.rightClicks.
+        IsItemClicked = function(button)
+            if button == _G.ImGuiMouseButton.Right then
+                if lastItem and ui.rightClicks[lastItem] then
+                    ui.rightClicks[lastItem] = nil
+                    return true
+                end
+                return false
+            end
+            assert(button == nil or button == _G.ImGuiMouseButton.Left, 'unexpected mouse button ' .. tostring(button))
+            return consume(lastItem)
+        end,
         IsItemHovered = function() return ui.hover ~= nil and ui.hover == lastItem end,
         SetTooltip = function() error('ImGui.SetTooltip must not be used (MacroQuest formats its text)') end,
         PushStyleColor = function(idx, r, g, b, a)
@@ -303,6 +320,11 @@ function M.new()
     _G.ImGuiInputTextFlags = { EnterReturnsTrue = 32 }
     _G.ImGuiCol = { Button = 21, ButtonHovered = 22, ButtonActive = 23 }
     _G.ImGuiTreeNodeFlags = { DefaultOpen = 32 }
+    _G.ImGuiWindowFlags = { NoTitleBar = 1, NoResize = 2, NoMove = 4, NoScrollbar = 8,
+        NoCollapse = 32, AlwaysAutoResize = 64 }
+    _G.ImGuiCond = { Always = 1, Once = 2, FirstUseEver = 4 }
+    _G.ImVec2 = function(x, y) return { x = x, y = y } end
+    _G.ImGuiMouseButton = { Left = 0, Right = 1, Middle = 2 }
     env.savedPrint = print
     _G.print = function(...)
         local parts = {}
@@ -348,6 +370,7 @@ function M.new()
         ui.previews = {}
         ui.selectables = {}
         ui.headers = {}
+        ui.windows = {}
         ui.widths = {}
         ui.order = {}
         ui.nextWidth = nil

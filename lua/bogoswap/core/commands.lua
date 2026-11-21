@@ -87,7 +87,7 @@ local HELP = {
     '  show                    print settings and current state',
     '  pause | resume | toggle stop or start taking action (the script keeps running)',
     '  swapnow                 evaluate once right now, even while paused or waiting to retry',
-    '  ui [on|off]             show or hide the window',
+    '  ui [on|off|min]         show, hide or minimize the window (ui alone toggles; it also restores from minimized)',
     '  debug [<channel>|all on|off]  list or switch debug channels: swap, guard, config, cmd, ui',
     '  quit                    stop BogoSwap',
     '  help                    this text',
@@ -174,16 +174,29 @@ function M.handle(state, ...)
         log.debug('cmd', n, 'swapnow requested; next pass ignores pause and retry wait')
         log.info('Evaluating now.')
     elseif sub == 'ui' then
+        -- ui / ui on restore the full window (even when minimized), ui off hides
+        -- everything, ui min shows only the BS button.
+        local ui = state.ui
         local v = a[2] and a[2]:lower()
         if v == 'on' then
-            state.ui.open = true
+            ui.open, ui.minimized = true, false
         elseif v == 'off' then
-            state.ui.open = false
+            ui.open = false
+        elseif v == 'min' or v == 'minimize' then
+            ui.open, ui.minimized = true, true
+        elseif v == nil then
+            if ui.open and not ui.minimized then
+                ui.open = false
+            else
+                ui.open, ui.minimized = true, false
+            end
         else
-            state.ui.open = not state.ui.open
+            log.err('Use: /bogoswap ui [on|off|min]')
+            return
         end
         local n = log.nextAction()
-        log.debug('ui', n, 'window %s by command', state.ui.open and 'shown' or 'hidden')
+        log.debug('ui', n, 'window %s by command', not ui.open and 'hidden'
+            or ui.minimized and 'minimized' or 'shown')
     elseif sub == 'debug' then
         debugCmd(state, a[2], a[3])
     elseif sub == 'quit' or sub == 'stop' or sub == 'exit' then

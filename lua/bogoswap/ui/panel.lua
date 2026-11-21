@@ -168,20 +168,75 @@ local BUTTON_PAUSED = { { 0.15, 0.35, 0.75, 1 }, { 0.22, 0.45, 0.88, 1 }, { 0.11
 M.BUTTON_RUNNING = BUTTON_RUNNING
 M.BUTTON_PAUSED = BUTTON_PAUSED
 
-local STOP_WIDTH = 60
+-- Wraps a button in the running/paused colours. Returns whether it was clicked.
+local function stateButton(state, label)
+    local colors = state.paused and BUTTON_PAUSED or BUTTON_RUNNING
+    for i, col in ipairs(BUTTON_COLS) do
+        local c = colors[i]
+        ImGui.PushStyleColor(ImGuiCol[col], c[1], c[2], c[3], c[4])
+    end
+    local clicked = ImGui.Button(label)
+    ImGui.PopStyleColor(#BUTTON_COLS)
+    return clicked
+end
 
--- Stop sits on the same row as Pause/Resume, against the right edge of the window.
-local function drawStop(state)
+local STOP_WIDTH = 60
+local MINIMIZE_WIDTH = 24
+local BUTTON_GAP = 8 -- ImGui's default horizontal item spacing
+
+local function setMinimized(state, minimized)
+    state.ui.minimized = minimized
+    local n = log.nextAction()
+    log.debug('ui', n, minimized and 'minimized to the BS button' or 'restored the window from the BS button')
+end
+
+-- [_] and [Stop] sit on the Pause/Resume row, against the right edge of the window.
+-- Both are placed explicitly, so the gap between them doesn't depend on SameLine spacing.
+local function drawRightButtons(state)
     ImGui.SameLine()
     local avail = xOf(ImGui.GetContentRegionAvail())
-    if avail > STOP_WIDTH then
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + avail - STOP_WIDTH)
-    end
+    local total = MINIMIZE_WIDTH + BUTTON_GAP + STOP_WIDTH
+    local start = ImGui.GetCursorPosX()
+    if avail > total then start = start + avail - total end
+    ImGui.SetCursorPosX(start)
+    if ImGui.Button('_##minimize', MINIMIZE_WIDTH, 0) then setMinimized(state, true) end
+    tip('Minimize to a small BS button.')
+    ImGui.SameLine()
+    ImGui.SetCursorPosX(start + MINIMIZE_WIDTH + BUTTON_GAP)
     if ImGui.Button('Stop##stop', STOP_WIDTH, 0) then
         commands.quit(state, 'ui')
         log.info('Stopping (Stop button).')
     end
     tip('Stop BogoSwap entirely, like /bogoswap quit.')
+end
+
+-- Minimized: a small window with no title bar that holds only the BS button. ImGui
+-- remembers where you drag it; the first time it opens near the top-left of the screen.
+local function miniFlags()
+    local f = ImGuiWindowFlags
+    if not f then return nil end
+    -- Distinct single-bit flags, so adding them is the same as OR-ing them.
+    return (f.NoTitleBar or 0) + (f.NoResize or 0) + (f.NoScrollbar or 0)
+        + (f.NoCollapse or 0) + (f.AlwaysAutoResize or 0)
+end
+
+local RIGHT_MOUSE = (ImGuiMouseButton and ImGuiMouseButton.Right) or 1
+
+local function drawMini(state)
+    if ImGui.SetNextWindowPos and ImVec2 and ImGuiCond then
+        ImGui.SetNextWindowPos(ImVec2(20, 20), ImGuiCond.FirstUseEver)
+    end
+    local _, show = ImGui.Begin('BogoSwap Mini###BogoSwapMini', true, miniFlags())
+    if show then
+        -- Left click (Button) restores; right click (IsItemClicked) toggles pause.
+        if stateButton(state, 'BS##bogoswap_restore') then setMinimized(state, false) end
+        if ImGui.IsItemClicked(RIGHT_MOUSE) then
+            commands.setPaused(state, not state.paused, 'ui (right-click BS)')
+        end
+        tip(string.format('BogoSwap (%s). Click to restore the window. Right-click to %s.',
+            state.paused and 'paused' or 'running', state.paused and 'resume' or 'pause'))
+    end
+    ImGui.End()
 end
 
 local function drawInput(state, key)
@@ -252,6 +307,10 @@ end
 function M.draw(state)
     local ui = state.ui
     if not ui.open then return end
+    if ui.minimized then
+        drawMini(state)
+        return
+    end
     local open, show = ImGui.Begin('BogoSwap###BogoSwap', ui.open)
     if open == false then
         ui.open = false
@@ -259,21 +318,14 @@ function M.draw(state)
         log.debug('ui', n, 'window closed; /bogoswap ui reopens it')
     end
     if show then
-        local colors = state.paused and BUTTON_PAUSED or BUTTON_RUNNING
-        for i, col in ipairs(BUTTON_COLS) do
-            local c = colors[i]
-            ImGui.PushStyleColor(ImGuiCol[col], c[1], c[2], c[3], c[4])
-        end
-        local clicked = ImGui.Button(state.paused and 'Resume##pause' or 'Pause##pause')
-        ImGui.PopStyleColor(#BUTTON_COLS)
-        if clicked then
+        if stateButton(state, state.paused and 'Resume##pause' or 'Pause##pause') then
             commands.setPaused(state, not state.paused, 'ui')
         end
         tip(state.paused and 'BogoSwap is paused. Click to start swapping.'
             or 'Click to stop swapping. BogoSwap keeps watching.')
         ImGui.SameLine()
         text(state.paused and 'PAUSED: taking no action' or 'Running')
-        drawStop(state)
+        drawRightButtons(state)
         ImGui.Separator()
         drawStatus(state)
         ImGui.Separator()

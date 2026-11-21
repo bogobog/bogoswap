@@ -58,5 +58,12 @@ Tick each one off once it's confirmed, and note anything that turned out differe
   - [ ] Labels are vertically centred on their fields (`AlignTextToFramePadding`), and the fields fill the rest of the row (`SetNextItemWidth(-1)`).
   - [ ] While the effect name is being edited, its field shrinks so "(Enter to apply)" fits on the row.
   - [ ] Hovering a label or its field shows a two-line tooltip naming the setting.
+- [ ] Minimize:
+  - [ ] `_` sits just left of Stop with a normal gap. This assumes 8 px item spacing; check it under your ImGui style.
+  - [ ] Clicking `_` hides the panel and shows only the BS button. Clicking BS brings the panel back where it was.
+  - [ ] The BS window has no title bar, fits snugly around the button, and can be dragged. It reopens where it was left, including after a restart.
+  - [ ] `ImGui.Begin(name, true, flags)` works with the flags, and `SetNextWindowPos(ImVec2(20, 20), ImGuiCond.FirstUseEver)` is accepted (on first use it opens near the top-left).
+  - [ ] BS is green while running and blue while paused.
+  - [ ] Right-clicking BS toggles pause (`IsItemClicked(ImGuiMouseButton.Right)` after the button), turns it green or blue, and doesn't restore the window. A left click still restores it.
 - [ ] Clicking Stop ends the script cleanly: the window closes, `/bogoswap` is unbound, and `${BogoSwap}` is gone.
 - [ ] `ImGui.PushStyleColor(ImGuiCol.Button, r, g, b, a)` (four floats) is accepted. The pause button is blue while paused and green while running, with lighter/darker shades on hover/click, and nothing else in the window changes colour.
