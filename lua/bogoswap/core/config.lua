@@ -12,7 +12,7 @@ M.OPTIONS = { 'OnlyInCombat' }
 -- MacroQuest inventory slot names, in paperdoll order.
 M.SLOTS = {
     'charm', 'leftear', 'head', 'face', 'rightear', 'neck', 'shoulder', 'arms', 'back',
-    'leftwrist', 'rightwrist', 'range', 'hands', 'mainhand', 'offhand', 'leftfinger',
+    'leftwrist', 'rightwrist', 'ranged', 'hands', 'mainhand', 'offhand', 'leftfinger',
     'rightfinger', 'chest', 'legs', 'feet', 'waist', 'powersource', 'ammo',
 }
 local SLOT_ALIASES = { primary = 'mainhand', secondary = 'offhand' }

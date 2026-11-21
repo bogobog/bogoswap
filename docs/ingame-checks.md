@@ -5,7 +5,7 @@ Tick each one off once it's confirmed, and note anything that turned out differe
 
 ## MQ2Exchange
 - [ ] `/exchange "Item Name" mainhand` swaps an item from a **closed** bag into the slot, and the old item goes to a bag.
-- [ ] `/exchange` works for other slots BogoSwap offers (`range`, `charm`, `leftfinger`, `ammo`, `powersource`, ...).
+- [ ] `/exchange` works for other slots BogoSwap offers (`ranged`, `charm`, `leftfinger`, `ammo`, `powersource`, ...).
 - [ ] `/unequip offhand` moves the offhand item into a bag.
 - [ ] What `/exchange` does with a two-hander while the offhand is filled (BogoSwap avoids it by unequipping first).
 - [ ] `${Plugin[mq2exchange].IsLoaded}` is TRUE when loaded and FALSE/NULL when not.

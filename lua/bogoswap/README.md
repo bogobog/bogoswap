@@ -26,7 +26,7 @@ The startup message says so, and the window shows a **Resume** button.
 | Setting | Label in the window | Meaning |
 |---|---|---|
 | `TriggerEffectName` | Trigger Effect | The buff to watch for. Both the buff window and the song window count. |
-| `SwapEquipmentSlot` | Equipment Slot | The equipment slot to swap into, such as `mainhand`, `offhand`, `range` or `charm` (`primary` and `secondary` also work). |
+| `SwapEquipmentSlot` | Equipment Slot | The equipment slot to swap into, such as `mainhand`, `offhand`, `ranged` or `charm` (`primary` and `secondary` also work). |
 | `MatchItemName` | Trigger Found Item | The item to equip while the effect is on you. |
 | `NoMatchItemName` | Trigger Missing Item | The item to equip while it isn't. |
 

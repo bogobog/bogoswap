@@ -4,7 +4,7 @@
 return {
     -- The four settings; set them with /bogoswap set or the window.
     TriggerEffectName = '',  -- buff or song to watch for
-    SwapEquipmentSlot = '',  -- equipment slot, e.g. mainhand, offhand, range, charm
+    SwapEquipmentSlot = '',  -- equipment slot, e.g. mainhand, offhand, ranged, charm
     MatchItemName = '',      -- item to equip while the effect is present
     NoMatchItemName = '',    -- item to equip while the effect is absent
 
