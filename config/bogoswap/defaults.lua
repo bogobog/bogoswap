@@ -8,6 +8,8 @@ return {
     MatchItemName = '',      -- item to equip while the effect is present
     NoMatchItemName = '',    -- item to equip while the effect is absent
 
+    OnlyInCombat = false,    -- when true, only swap while in combat (see the README)
+
     TickMs = 250,    -- how often to check, in milliseconds
     SettleMs = 750,  -- how long to wait after a swap before checking it worked
     RetryMs = 3000,  -- how long after a swap that didn't work before trying again

@@ -28,6 +28,14 @@ Tick each one off once it's confirmed, and note anything that turned out differe
 - [ ] `${Cursor.Name}` is NULL with an empty cursor.
 - [ ] During zoning `${MacroQuest.GameState}` is not INGAME, or swaps are otherwise held back.
 
+## OnlyInCombat
+- [ ] `${Me.CombatState}` returns `COMBAT` while fighting, and `ACTIVE`/`RESTING`/`COOLDOWN` out of combat.
+- [ ] `${Me.CombatState}` can be `DEBUFFED` during a fight (debuffed and on a hate list), and stays `DEBUFFED` after the fight while the debuff lasts.
+- [ ] `${Me.XTargetSlots}` gives the number of extended target slots.
+- [ ] `${Me.XTarget[i].TargetType}` is "Auto Hater" for auto hater slots, and `${Me.XTarget[i].ID}` is 0 (or NULL) for an empty slot and greater than 0 while an NPC is in it.
+- [ ] After a fight ends with a debuff still on you, the auto hater slots empty out, so BogoSwap stops swapping.
+- [ ] `/bogoswap swapnow` swaps outside combat with OnlyInCombat on.
+
 ## Lua and MacroQuest APIs
 - [ ] `mq.pickle` writes the config, and `lfs.mkdir` creates `<MQ config>/BogoSwap/` on a fresh install.
 - [ ] `/lua run bogoswap pause=no` passes `pause=no` to the script as a single argument.
@@ -53,6 +61,10 @@ Tick each one off once it's confirmed, and note anything that turned out differe
   - [ ] Collapsing it leaves only the Status line.
   - [ ] It stays collapsed while the status text changes (the label uses the stable id `###bogoswap_status`).
   - [ ] A long status line is readable in the header, and an item name containing `%` shows correctly in it.
+- [ ] The Options section:
+  - [ ] `ImGui.CollapsingHeader('Options###bogoswap_options')` with no flags starts collapsed and sits between the status details and the settings.
+  - [ ] `ImGui.Checkbox(label, value)` returns the new value (BogoSwap compares it with the old one and doesn't rely on the second "pressed" return). Clicking OnlyInCombat toggles it and saves it.
+  - [ ] With OnlyInCombat on, the status details show "Combat state: ...".
 - [ ] Setting rows:
   - [ ] Labels sit to the left in one column that's wide enough for "Trigger Missing Item" (sized with `CalcTextSize`, falling back to 150 px).
   - [ ] Labels are vertically centred on their fields (`AlignTextToFramePadding`), and the fields fill the rest of the row (`SetNextItemWidth(-1)`).

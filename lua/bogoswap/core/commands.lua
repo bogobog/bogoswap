@@ -2,6 +2,7 @@
 local log = require('bogoswap.core.log')
 local config = require('bogoswap.core.config')
 local game = require('bogoswap.core.game')
+local swap = require('bogoswap.core.swap')
 
 local M = {}
 
@@ -13,6 +14,11 @@ local function unquote(s)
     local inner = s:match('^"(.*)"$') or s:match("^'(.*)'$")
     return inner or s
 end
+
+local TRUE = { on = true, yes = true, ['true'] = true, ['1'] = true }
+local FALSE = { off = true, no = true, ['false'] = true, ['0'] = true }
+
+local function onOff(v) return v and 'on' or 'off' end
 
 -- Warnings about the current config that don't block saving it.
 function M.validate(state)
@@ -41,9 +47,28 @@ function M.setValue(state, key, value, source)
     local k = config.canonicalKey(key)
     if not k then
         return false, string.format('Unknown setting "%s". Settings: %s',
-            tostring(key), table.concat(config.KEYS, ', '))
+            tostring(key), table.concat(config.allKeys(), ', '))
     end
     value = unquote(trim(value))
+    if config.isOption(k) then
+        local lv = value:lower()
+        local on
+        if TRUE[lv] then
+            on = true
+        elseif FALSE[lv] then
+            on = false
+        else
+            return false, string.format('Use: /bogoswap set %s on|off (also yes/no, true/false, 1/0)', k)
+        end
+        local old = state.cfg[k]
+        state.cfg[k] = on
+        config.save(state.cfg, state.cfgPath)
+        local n = log.nextAction()
+        log.debug('config', n, '%s set %s: %s -> %s', source, k, onOff(old), onOff(on))
+        log.info('%s = %s', k, onOff(on))
+        log.resetNote('status')
+        return true
+    end
     if k == 'SwapEquipmentSlot' and value ~= '' then
         local s = config.normalizeSlot(value)
         if not s then
@@ -84,9 +109,10 @@ end
 local HELP = {
     'Usage: /bogoswap <command>   (alias /bswap)',
     '  set <Setting> <value>   set TriggerEffectName, SwapEquipmentSlot, MatchItemName or NoMatchItemName (no value clears it)',
+    '  set OnlyInCombat on|off only swap while in combat',
+    '  swapnow                 evaluate once right now, even while paused, waiting to retry or out of combat',
     '  show                    print settings and current state',
     '  pause | resume | toggle stop or start taking action (the script keeps running)',
-    '  swapnow                 evaluate once right now, even while paused or waiting to retry',
     '  ui [on|off|min]         show, hide or minimize the window (ui alone toggles; it also restores from minimized)',
     '  debug [<channel>|all on|off]  list or switch debug channels: swap, guard, config, cmd, ui',
     '  quit                    stop BogoSwap',
@@ -97,7 +123,11 @@ local function show(state)
     local cfg = state.cfg
     log.info('BogoSwap v%s: %s', state.version, state.paused and 'PAUSED' or 'running')
     for _, k in ipairs(config.KEYS) do log.info('  %s = "%s"', k, cfg[k]) end
+    for _, k in ipairs(config.OPTIONS) do log.info('  %s = %s', k, onOff(cfg[k])) end
     local s = state.snap
+    if cfg.OnlyInCombat and s and s.inGame then
+        log.info('  Combat state: %s', swap.combatText(s))
+    end
     if s and s.inGame then
         log.info('  Effect: %s; %s holds: %s; wanted: %s',
             s.effectWindow and ('present (' .. s.effectWindow .. ')') or 'absent',
@@ -155,7 +185,7 @@ function M.handle(state, ...)
     local sub = (a[1] or 'help'):lower()
     if sub == 'set' then
         if not a[2] then
-            log.err('Use: /bogoswap set <Setting> <value>. Settings: %s', table.concat(config.KEYS, ', '))
+            log.err('Use: /bogoswap set <Setting> <value>. Settings: %s', table.concat(config.allKeys(), ', '))
             return
         end
         local ok, err = M.setValue(state, a[2], table.concat(a, ' ', 3), 'command')

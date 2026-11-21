@@ -29,6 +29,11 @@ function M.snapshot(cfg)
     local slot = cfg.SwapEquipmentSlot
     s.charState = game.charState()
     s.casting = game.casting()
+    if cfg.OnlyInCombat then
+        s.combatState = game.combatState()
+        -- DEBUFFED can outlast the fight, so it only counts while something still hates you.
+        if s.combatState == 'DEBUFFED' then s.haters = game.xtargetHaters() end
+    end
     s.isBard = game.isBard()
     s.cursor = game.cursorItem()
     s.exchangeLoaded = game.exchangeLoaded()
@@ -45,6 +50,20 @@ function M.snapshot(cfg)
     return s
 end
 
+-- COMBAT always counts; DEBUFFED only while an auto hater is on extended target.
+function M.inCombat(s)
+    if s.combatState == 'COMBAT' then return true end
+    return s.combatState == 'DEBUFFED' and (s.haters or 0) > 0
+end
+
+function M.combatText(s)
+    local cs = s.combatState or 'unknown'
+    if cs == 'DEBUFFED' then
+        return string.format('DEBUFFED, %d auto hater(s) on extended target', s.haters or 0)
+    end
+    return cs
+end
+
 local function effectText(cfg, s)
     if s.effectWindow then
         return string.format('%s present (%s)', q(cfg.TriggerEffectName), s.effectWindow)
@@ -56,10 +75,21 @@ local function blocked(reason, level)
     return { kind = 'blocked', channel = 'guard', level = level, reason = reason }
 end
 
+local decide
+
 -- Returns a decision: { kind, reason, channel?, level?, item?, slot?, stash?, restore? }.
 -- kind is one of idle, paused, blocked, missing, ok (no action) or exchange,
--- unequip, clearstash (actions).
-function M.decide(cfg, s, paused)
+-- unequip, clearstash (actions). force (from swapnow) overrides OnlyInCombat.
+function M.decide(cfg, s, paused, force)
+    local d = decide(cfg, s, paused, force)
+    if force and M.ACTIONS[d.kind] and cfg.OnlyInCombat and s.inGame and not M.inCombat(s) then
+        d.reason = string.format('%s (swapnow overrides OnlyInCombat; combat state %s)',
+            d.reason, M.combatText(s))
+    end
+    return d
+end
+
+decide = function(cfg, s, paused, force)
     local complete, missing = config.isComplete(cfg)
     if not complete then
         return { kind = 'idle', channel = 'config',
@@ -78,6 +108,9 @@ function M.decide(cfg, s, paused)
     if not s.exchangeLoaded then
         return { kind = 'idle', channel = 'guard', level = 'warn',
             reason = 'MQ2Exchange is not loaded, and BogoSwap needs it to swap. Load it with /plugin mq2exchange' }
+    end
+    if cfg.OnlyInCombat and not force and not M.inCombat(s) then
+        return blocked('not in combat (OnlyInCombat is on; combat state ' .. M.combatText(s) .. ')')
     end
     local cs = s.charState
     if cs == 'DEAD' or cs == 'HOVER' then return blocked('dead') end
@@ -217,7 +250,7 @@ function M.tick(state, now, force)
         end
     end
 
-    local d = M.decide(cfg, s, state.paused and not force)
+    local d = M.decide(cfg, s, state.paused and not force, force)
     state.decision = d
     if M.ACTIONS[d.kind] then
         execute(state, d, now)

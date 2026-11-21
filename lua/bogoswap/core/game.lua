@@ -20,6 +20,22 @@ function M.charState() return nz(mq.TLO.Me.State()) end
 
 function M.casting() return nz(mq.TLO.Me.Casting()) end
 
+-- COMBAT, DEBUFFED, COOLDOWN, ACTIVE, RESTING.
+function M.combatState() return nz(mq.TLO.Me.CombatState()) end
+
+-- How many extended target slots hold a live NPC as an auto hater (something
+-- still has you on its hate list).
+function M.xtargetHaters()
+    local slots = tonumber(mq.TLO.Me.XTargetSlots()) or 0
+    local n = 0
+    for i = 1, slots do
+        local x = mq.TLO.Me.XTarget(i)
+        local kind = nz(x.TargetType())
+        if kind and kind:lower() == 'auto hater' and (tonumber(x.ID()) or 0) > 0 then n = n + 1 end
+    end
+    return n
+end
+
 function M.isBard() return mq.TLO.Me.Class.ShortName() == 'BRD' end
 
 function M.cursorItem() return nz(mq.TLO.Cursor.Name()) end

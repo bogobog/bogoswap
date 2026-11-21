@@ -27,6 +27,7 @@ function M.members(state)
         SwapEquipmentSlot = function(param, self) return str(state.cfg.SwapEquipmentSlot) end,
         MatchItemName = function(param, self) return str(state.cfg.MatchItemName) end,
         NoMatchItemName = function(param, self) return str(state.cfg.NoMatchItemName) end,
+        OnlyInCombat = function(param, self) return 'bool', state.cfg.OnlyInCombat == true end,
         EffectPresent = function(param, self) return 'bool', snap().effectWindow ~= nil end,
         WantedItem = function(param, self) return str(snap().wantName) end,
         LastAction = function(param, self)

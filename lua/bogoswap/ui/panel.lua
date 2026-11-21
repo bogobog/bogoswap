@@ -48,6 +48,13 @@ for key, desc in pairs(DESCRIPTIONS) do
     TIPS[key] = string.format('%s\nSetting: %s  (/bogoswap set %s <value>)', desc, key, key)
 end
 
+-- The Options section's on/off settings. Each label is the setting name itself.
+local OPTION_TIPS = {
+    OnlyInCombat = 'Only swap while you are in combat: combat state COMBAT, or DEBUFFED while an\n'
+        .. 'auto hater is on your extended target. No swaps happen outside combat.\n'
+        .. 'Setting: OnlyInCombat  (/bogoswap set OnlyInCombat on|off)',
+}
+
 -- Replaces canonical setting names in text shown in the panel with their labels.
 -- NoMatchItemName goes first because it contains MatchItemName.
 local LABEL_ORDER = { 'NoMatchItemName', 'MatchItemName', 'TriggerEffectName', 'SwapEquipmentSlot' }
@@ -286,11 +293,30 @@ local function drawStatus(state)
             s.slotItem and s.slotItem.name or 'nothing'))
         text(string.format('Wanted: %s', (s.wantName and s.wantName ~= '') and s.wantName or '(not set)'))
     end
+    if s.inGame and cfg.OnlyInCombat then
+        text('Combat state: ' .. swap.combatText(s))
+    end
     if cfg.State.StashedOffhandItem ~= '' then
         text('Remembered offhand: ' .. cfg.State.StashedOffhandItem)
     end
     if state.lastAction then
         text(string.format('Last action: #%d %s', state.lastAction.n, friendly(state.lastAction.text)))
+    end
+end
+
+-- Optional settings. Starts collapsed; the ### id keeps it stable.
+local function drawOptions(state)
+    if not ImGui.CollapsingHeader('Options###bogoswap_options') then return end
+    tip('Click to show or hide optional settings.')
+    for _, key in ipairs(config.OPTIONS) do
+        local cur = state.cfg[key] == true
+        -- Compare with the current value rather than relying on the "pressed" return.
+        local v = ImGui.Checkbox(key .. '##opt_' .. key, cur)
+        if v ~= nil and v ~= cur then
+            local ok, err = commands.setValue(state, key, v and 'on' or 'off', 'ui')
+            if not ok then log.err('%s', err) end
+        end
+        tip(OPTION_TIPS[key] or ('Setting: ' .. key))
     end
 end
 
@@ -318,6 +344,7 @@ function M.draw(state)
         drawRightButtons(state)
         ImGui.Separator()
         drawStatus(state)
+        drawOptions(state)
         ImGui.Separator()
         for _, key in ipairs(config.KEYS) do
             if key == 'SwapEquipmentSlot' then

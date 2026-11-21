@@ -6,6 +6,9 @@ local M = {}
 
 M.KEYS = { 'TriggerEffectName', 'SwapEquipmentSlot', 'MatchItemName', 'NoMatchItemName' }
 
+-- Optional on/off settings, shown in the panel's Options section. Not needed for isComplete.
+M.OPTIONS = { 'OnlyInCombat' }
+
 -- MacroQuest inventory slot names, in paperdoll order.
 M.SLOTS = {
     'charm', 'leftear', 'head', 'face', 'rightear', 'neck', 'shoulder', 'arms', 'back',
@@ -22,6 +25,7 @@ M.BUILTIN_DEFAULTS = {
     SwapEquipmentSlot = '',
     MatchItemName = '',
     NoMatchItemName = '',
+    OnlyInCombat = false,
     TickMs = 250,
     SettleMs = 750,
     RetryMs = 3000,
@@ -154,7 +158,25 @@ function M.canonicalKey(s)
     for _, k in ipairs(M.KEYS) do
         if k:lower() == l then return k end
     end
+    for _, k in ipairs(M.OPTIONS) do
+        if k:lower() == l then return k end
+    end
     return nil
+end
+
+function M.isOption(key)
+    for _, k in ipairs(M.OPTIONS) do
+        if k == key then return true end
+    end
+    return false
+end
+
+-- Every setting name /bogoswap set accepts.
+function M.allKeys()
+    local out = {}
+    for _, k in ipairs(M.KEYS) do out[#out + 1] = k end
+    for _, k in ipairs(M.OPTIONS) do out[#out + 1] = k end
+    return out
 end
 
 function M.normalizeSlot(s)

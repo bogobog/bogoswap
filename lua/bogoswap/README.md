@@ -43,6 +43,18 @@ Setting names aren't case-sensitive in the command.
 
 `/bogoswap set <Setting>` with no value clears that setting. BogoSwap warns you if an item can't be worn in the chosen slot.
 
+### Options
+
+Optional on/off settings, in the window's **Options** section or with `/bogoswap set <Option> on|off` (`yes`/`no`, `true`/`false` and `1`/`0` also work). They're off by default.
+
+| Option | Meaning |
+|---|---|
+| `OnlyInCombat` | Only swap while you're in combat. Outside combat BogoSwap leaves the slot as it is, and doesn't take off or put back a remembered offhand item. |
+
+For `OnlyInCombat`, you're in combat when `${Me.CombatState}` is `COMBAT`, or when it's `DEBUFFED` and at least one extended target slot holds an **Auto Hater**. `DEBUFFED` can last after a fight while a debuff is still on you; with no auto haters left, that doesn't count. Set up auto hater slots in your extended target window for this to work. `/bogoswap swapnow` swaps even outside combat.
+
+    /bogoswap set OnlyInCombat on
+
 Settings are saved per character in `<MQ config>/BogoSwap/<server>_<character>.lua`.
 New characters start from `<MQ config>/BogoSwap/defaults.lua`, which BogoSwap creates the first time it runs.
 That file also has timing settings you can edit:
@@ -62,7 +74,8 @@ It does not swap:
 - while you're dead, stunned or feigning death,
 - while you're zoning or not in game,
 - when the item isn't in your bags (it tells you if the item is in the bank instead),
-- when the item can't be worn in that slot.
+- when the item can't be worn in that slot,
+- outside combat, when `OnlyInCombat` is on.
 
 After each swap it checks that the swap worked. If not, it tries again after `RetryMs`.
 
@@ -80,10 +93,10 @@ When the slot is `offhand` and a two-hander is in mainhand, BogoSwap can't swap,
 
 | Command | Effect |
 |---|---|
-| `set <Setting> <value>` | Change a setting (no value clears it). |
+| `set <Setting> <value>` | Change a setting (no value clears it). Options take `on` or `off`. |
 | `show` | Print settings, the current state and the config file path. |
 | `pause`, `resume`, `toggle` | Stop or start taking action. BogoSwap keeps watching while paused. |
-| `swapnow` | Check and swap once right now, even while paused or waiting to retry. |
+| `swapnow` | Check and swap once right now, even while paused, waiting to retry, or out of combat with `OnlyInCombat` on. |
 | `ui [on\|off\|min]` | `ui` alone shows or hides the window, and also restores it from minimized. `on` shows the full window, `off` hides everything, and `min` minimizes to the BS button. |
 | `debug [<channel>\|all] [on\|off]` | List or switch debug channels. |
 | `quit` | Stop BogoSwap. |
@@ -95,7 +108,8 @@ The window has:
 
 - a Pause/Resume button, green while BogoSwap is running and blue while it's paused,
 - a `_` (minimize) button and a Stop button at the right of the same row. Stop ends BogoSwap entirely, like `/bogoswap quit`,
-- a collapsible status section. Its header is the current status. Expanding it (the default) also shows the effect's state, what the slot holds, what BogoSwap wants there, any remembered offhand item, and the last action. Collapsed, only the status line shows,
+- a collapsible status section. Its header is the current status. Expanding it (the default) also shows the effect's state, what the slot holds, what BogoSwap wants there, your combat state (when `OnlyInCombat` is on), any remembered offhand item, and the last action. Collapsed, only the status line shows,
+- a collapsible **Options** section below the status, collapsed by default, with a checkbox for each option (currently `OnlyInCombat`),
 - the four settings, one per row, with the label on the left and the field filling the rest of the row. Trigger Found Item and Trigger Missing Item are item pickers:
   - Each lists the items in your bags, plus the item worn in the slot, that fit `SwapEquipmentSlot` and that your character can use.
   - Duplicates appear once, and two-handers are tagged "(2H)" when the slot is `mainhand`.
@@ -132,6 +146,7 @@ For macros and other scripts. All members are read-only.
 | `State` | string | `paused`, `ok`, `blocked`, `missing`, `idle`, `exchange`, `unequip`, `clearstash` |
 | `Status` | string | current status text |
 | `TriggerEffectName`, `SwapEquipmentSlot`, `MatchItemName`, `NoMatchItemName` | string | settings (`NULL` if blank) |
+| `OnlyInCombat` | bool | whether the `OnlyInCombat` option is on |
 | `EffectPresent` | bool | whether the effect is on you |
 | `WantedItem` | string | the item BogoSwap wants in the slot right now |
 | `LastAction` | string | `#n` and the reason for the last action |

@@ -45,7 +45,7 @@ function M.new()
     -- The game world. Tests change these fields directly.
     local world = {
         gameState = 'INGAME', server = 'testserver', name = 'Tester', class = 'WAR',
-        charState = 'STAND', casting = nil, cursor = nil, freeInventory = 10,
+        charState = 'STAND', combatState = 'ACTIVE', xtarget = {}, casting = nil, cursor = nil, freeInventory = 10,
         buffs = {}, songs = {},
         slots = {},   -- slot -> item name
         bags = {},    -- list of item names in inventory bags
@@ -64,6 +64,7 @@ function M.new()
         world.items[name] = { type = itype, slots = set, canUse = not (opts and opts.canUse == false) }
     end
     env.packScans = 0
+    env.xtargetReads = 0
 
     local function lookup(name)
         if not name then return nil end
@@ -133,6 +134,14 @@ function M.new()
             CleanName = function() return world.name end,
             State = function() return world.charState end,
             Casting = function() return world.casting end,
+            CombatState = function() return world.combatState end,
+            -- world.xtarget: list of { type = 'Auto Hater', id = 123 }; reads are counted.
+            XTargetSlots = function() return #world.xtarget end,
+            XTarget = function(i)
+                env.xtargetReads = env.xtargetReads + 1
+                local x = world.xtarget[i] or {}
+                return { TargetType = function() return x.type end, ID = function() return x.id or 0 end }
+            end,
             FreeInventory = function() return world.freeInventory end,
             Class = { ShortName = function() return world.class end },
             Buff = function(n) return function() return has(world.buffs, n) end end,
@@ -267,15 +276,26 @@ function M.new()
             ui.previews[label] = preview
             return ui.openCombo == label and not ui.disabledDepth
         end,
-        -- Open unless the test sets ui.headerOpen[id] = false; DefaultOpen is required.
+        -- Open if the test sets ui.headerOpen[id] = true, closed if false; otherwise
+        -- open only with DefaultOpen. ui.headerFlags[id] records the flags.
         CollapsingHeader = function(label, flags)
             lastItem = label
             local shown, id = label:match('^(.-)###(.*)$')
             assert(id, 'CollapsingHeader label needs a ### id: ' .. label)
-            assert(flags == _G.ImGuiTreeNodeFlags.DefaultOpen, 'CollapsingHeader should start open')
             ui.texts[#ui.texts + 1] = shown
             ui.headers[id] = shown
-            return ui.headerOpen[id] ~= false
+            ui.headerFlags[id] = flags
+            local o = ui.headerOpen[id]
+            if o == nil then return flags == _G.ImGuiTreeNodeFlags.DefaultOpen end
+            return o
+        end,
+        -- Returns value, pressed like MacroQuest; a click (ui.clicks[label]) flips it.
+        Checkbox = function(label, v)
+            lastItem = label
+            assert(type(v) == 'boolean', 'Checkbox needs a boolean')
+            ui.checkboxes[label] = v
+            if consume(label) then return not v, true end
+            return v, false
         end,
         BeginDisabled = function() ui.disabledDepth = true; ui.disabledUsed = true end,
         EndDisabled = function() ui.disabledDepth = nil end,
@@ -379,6 +399,8 @@ function M.new()
         ui.previews = {}
         ui.selectables = {}
         ui.headers = {}
+        ui.headerFlags = {}
+        ui.checkboxes = {}
         ui.windows = {}
         ui.widths = {}
         ui.order = {}
