@@ -42,5 +42,11 @@ Tick each one off once it's confirmed, and note anything that turned out differe
 - [ ] Clicking an entry in the slot combo selects it (detected with `IsItemClicked`).
 - [ ] Tooltips appear on hover.
 - [ ] The Stop button sits at the right edge of the Pause/Resume row and stays there when the window is resized. This depends on `GetContentRegionAvail` (BogoSwap accepts it returning a number or an ImVec2), `GetCursorPosX`/`SetCursorPosX`, and `Button(label, width, height)`.
+- [ ] Item pickers:
+  - [ ] General inventory is `${Me.Inventory[23]}` to `${Me.Inventory[34]}` (pack1 to pack12). Bags report `Container` greater than 0, and `.Item[n]` reads their contents even when the bag is closed. Loose items in those slots report `Container` 0.
+  - [ ] `${Me.Inventory[n].Item[j].WornSlot[mainhand]}` and `.CanUse` work on bag contents. `CanUse` is FALSE for items your class, race or level can't use.
+  - [ ] Opening a picker with full bags doesn't cause a noticeable hitch.
+  - [ ] An `InputText` and a `Button` inside a combo dropdown work, and clicking Refresh doesn't close the dropdown.
+  - [ ] `ImGui.BeginDisabled` / `EndDisabled` exist, and the disabled pickers can't be opened.
 - [ ] Clicking Stop ends the script cleanly: the window closes, `/bogoswap` is unbound, and `${BogoSwap}` is gone.
 - [ ] `ImGui.PushStyleColor(ImGuiCol.Button, r, g, b, a)` (four floats) is accepted. The pause button is blue while paused and green while running, with lighter/darker shades on hover/click, and nothing else in the window changes colour.

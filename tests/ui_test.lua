@@ -84,7 +84,7 @@ end)
 test('a slash command change refreshes the input', function(m, t)
     m.start()
     m.frame()
-    m.command('/bogoswap set MatchItemName Rusty Sword')
+    m.command('/bogoswap set TriggerEffectName Haste')
     m.frame()
     t.notContains(texts(m), '(Enter to apply)')
 end)
@@ -98,11 +98,12 @@ test('slot picker uses IsItemClicked', function(m, t)
 end)
 
 test('tooltips use BeginTooltip, never SetTooltip', function(m, t)
+    setup.swords(m)
     m.start()
     m.ui.hover = 'Resume##pause'
     m.frame()
     t.contains(texts(m), 'Click to start swapping')
-    m.ui.hover = 'MatchItemName##MatchItemName'
+    m.ui.hover = 'MatchItemName##pick_MatchItemName'
     m.frame()
     t.contains(texts(m), 'Item to equip while the effect is present')
 end)

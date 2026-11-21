@@ -31,7 +31,7 @@ The startup message says so, and the window shows a **Resume** button.
 | `NoMatchItemName` | The item to equip while it isn't. |
 
 Item and effect names must match exactly; capitalization doesn't matter.
-Set them with `/bogoswap set` or in the window (press Enter after typing).
+Set them with `/bogoswap set` or in the window (press Enter after typing the effect name; the items and the slot are picked from lists).
 Setting names aren't case-sensitive in the command.
 
     /bogoswap set TriggerEffectName Spirit of Wolf
@@ -95,7 +95,14 @@ The window has:
 - a Stop button at the right of the same row, which stops BogoSwap entirely, like `/bogoswap quit`,
 - the effect's state, what the slot holds, and what BogoSwap wants there,
 - the current status and the last action,
-- the four settings.
+- the four settings. `MatchItemName` and `NoMatchItemName` are item pickers:
+  - Each lists the items in your bags, plus the item worn in the slot, that fit `SwapEquipmentSlot` and that your character can use.
+  - Duplicates appear once, and two-handers are tagged "(2H)" when the slot is `mainhand`.
+  - Type in the search box at the top to narrow the list. "(none)" clears the setting.
+  - Your bags are read each time you open a picker. Click **Refresh** if they change while it's open.
+  - If the chosen item isn't in your bags, can't be worn in the slot, or you can't use it, the picker says so next to its name.
+  - Choose a slot first; until then the pickers are greyed out.
+  - To set an item that isn't in your bags right now, use `/bogoswap set`.
 
 Closing the window doesn't stop BogoSwap; `/bogoswap ui` brings it back.
 

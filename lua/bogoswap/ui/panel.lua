@@ -4,6 +4,8 @@
 local log = require('bogoswap.core.log')
 local config = require('bogoswap.core.config')
 local commands = require('bogoswap.core.commands')
+local game = require('bogoswap.core.game')
+local swap = require('bogoswap.core.swap')
 
 local M = {}
 
@@ -27,9 +29,83 @@ end
 local TIPS = {
     TriggerEffectName = 'Buff or song to watch for (exact name). Press Enter to apply.',
     SwapEquipmentSlot = 'Equipment slot to swap items into.',
-    MatchItemName = 'Item to equip while the effect is present (exact name). Press Enter to apply.',
-    NoMatchItemName = 'Item to equip while the effect is absent (exact name). Press Enter to apply.',
+    MatchItemName = 'Item to equip while the effect is present. Lists items in your bags that fit the slot.',
+    NoMatchItemName = 'Item to equip while the effect is absent. Lists items in your bags that fit the slot.',
 }
+
+-- Why the configured item might not be swappable, shown next to it in the picker.
+local function itemMarker(state, key)
+    local name, slot = state.cfg[key], state.cfg.SwapEquipmentSlot
+    if name == '' or slot == '' or not (state.snap and state.snap.inGame) then return '' end
+    local it = game.findItem(name, slot)
+    if not it then return ' (not in inventory)' end
+    if it.canWear == false then return " (can't be worn in " .. slot .. ')' end
+    if not it.canUse then return " (you can't use it)" end
+    return ''
+end
+
+local function scan(state, why)
+    local slot = state.cfg.SwapEquipmentSlot
+    local items = game.equipCandidates(slot)
+    state.ui.candidates = { slot = slot, items = items }
+    local n = log.nextAction()
+    log.debug('ui', n, 'scanned inventory for %s: %d eligible item(s) (%s)', slot, #items, why)
+end
+
+local function choose(state, key, name)
+    local ok, err = commands.setValue(state, key, name, 'ui')
+    if not ok then log.err('%s', err) end
+    state.ui.search[key] = ''
+end
+
+-- Item picker for MatchItemName / NoMatchItemName. The inventory is scanned when the
+-- dropdown opens and when Refresh is clicked, never while it's closed.
+local function drawPicker(state, key)
+    local ui = state.ui
+    local slot = state.cfg.SwapEquipmentSlot
+    local cur = state.cfg[key]
+    local label = key .. '##pick_' .. key
+    if slot == '' then
+        local canDisable = ImGui.BeginDisabled ~= nil
+        if canDisable then ImGui.BeginDisabled(true) end
+        if ImGui.BeginCombo(label, cur ~= '' and cur or '(none)') then ImGui.EndCombo() end
+        if canDisable then ImGui.EndDisabled() end
+        ImGui.SameLine()
+        text('Choose SwapEquipmentSlot first.')
+        ui.pickerOpen[key] = false
+        return
+    end
+    if ImGui.BeginCombo(label, (cur ~= '' and cur or '(none)') .. itemMarker(state, key)) then
+        if not ui.pickerOpen[key] or not ui.candidates or ui.candidates.slot ~= slot then
+            scan(state, 'opened ' .. key .. ' picker')
+        end
+        ui.pickerOpen[key] = true
+        local s = ImGui.InputText('Search##search_' .. key, ui.search[key] or '')
+        if s ~= nil then ui.search[key] = s end
+        ImGui.SameLine()
+        if ImGui.Button('Refresh##refresh_' .. key) then scan(state, 'Refresh clicked') end
+        ImGui.Selectable('(none)##pick_' .. key .. '_none', cur == '')
+        if ImGui.IsItemClicked() then choose(state, key, '') end
+        local filter = (ui.search[key] or ''):lower()
+        local shown = 0
+        for _, it in ipairs(ui.candidates.items) do
+            if filter == '' or it.name:lower():find(filter, 1, true) then
+                shown = shown + 1
+                local tag = (slot == 'mainhand' and swap.isTwoHander(it)) and ' (2H)' or ''
+                ImGui.Selectable(it.name .. tag .. '##pick_' .. key .. '_' .. it.name,
+                    it.name:lower() == cur:lower())
+                if ImGui.IsItemClicked() then choose(state, key, it.name) end
+            end
+        end
+        if shown == 0 then
+            text(#ui.candidates.items == 0 and ('Nothing in your bags fits ' .. slot .. '.') or 'No match.')
+        end
+        ImGui.EndCombo()
+    else
+        ui.pickerOpen[key] = false
+    end
+    tip(TIPS[key])
+end
 
 -- Pause button colours: green while running, blue while paused.
 -- Each list is normal, hovered, active (RGBA, 0-1).
@@ -145,7 +221,13 @@ function M.draw(state)
         drawStatus(state)
         ImGui.Separator()
         for _, key in ipairs(config.KEYS) do
-            if key == 'SwapEquipmentSlot' then drawSlot(state) else drawInput(state, key) end
+            if key == 'SwapEquipmentSlot' then
+                drawSlot(state)
+            elseif key == 'TriggerEffectName' then
+                drawInput(state, key)
+            else
+                drawPicker(state, key)
+            end
         end
     end
     ImGui.End()

@@ -4,7 +4,7 @@
 local mq = require('mq')
 require('ImGui')
 
-local VERSION = '0.3.0'
+local VERSION = '0.4.0'
 
 local log = require('bogoswap.core.log')
 local args = require('bogoswap.core.args')
@@ -27,7 +27,7 @@ local state = {
     version = VERSION,
     running = true,
     paused = opts.pause,
-    ui = { open = true, edit = {}, seen = {} },
+    ui = { open = true, edit = {}, seen = {}, search = {}, pickerOpen = {} },
 }
 state.cfg, state.cfgPath = config.load(game.server(), game.charName())
 log.applyChannels(state.cfg.Debug)

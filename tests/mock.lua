@@ -49,6 +49,7 @@ function M.new()
         buffs = {}, songs = {},
         slots = {},   -- slot -> item name
         bags = {},    -- list of item names in inventory bags
+        loose = {},   -- general inventory slot number (24-34) -> item name not in a bag
         bank = {},    -- list of item names in the bank
         items = {},   -- item name -> { type = '1H Slashing', slots = { mainhand = true } }
         plugins = { mq2exchange = true },
@@ -56,11 +57,13 @@ function M.new()
     }
     env.world = world
 
-    function env.item(name, itype, slots)
+    -- opts.canUse = false: the character's class/race/level can't use it.
+    function env.item(name, itype, slots, opts)
         local set = {}
         for _, s in ipairs(slots) do set[s] = true end
-        world.items[name] = { type = itype, slots = set }
+        world.items[name] = { type = itype, slots = set, canUse = not (opts and opts.canUse == false) }
     end
+    env.packScans = 0
 
     local function lookup(name)
         if not name then return nil end
@@ -85,6 +88,12 @@ function M.new()
         end
         return false
     end
+    local function looseAnywhere(name)
+        for _, n in pairs(world.loose) do
+            if n:lower() == name:lower() then return true end
+        end
+        return false
+    end
     local function isTwoHander(name)
         local _, def = lookup(name)
         return def ~= nil and def.type:sub(1, 2) == '2H'
@@ -97,7 +106,24 @@ function M.new()
             ID = function() return real and 1001 or nil end,
             Type = function() return def and def.type end,
             WornSlot = function(slot) return function() return def ~= nil and def.slots[slot] == true end end,
+            CanUse = function() return def ~= nil and def.canUse end,
+            Container = function() return 0 end,
+            Item = function() return itemNode(nil) end,
         }, { __call = function() return real end })
+    end
+
+    -- General inventory: slot 23 is a backpack holding world.bags; 24-34 hold world.loose[i].
+    local function packNode(i)
+        if i ~= 23 then return itemNode(world.loose[i]) end
+        env.packScans = env.packScans + 1
+        return setmetatable({
+            Name = function() return 'Backpack' end,
+            Type = function() return 'Container' end,
+            Container = function() return math.max(10, #world.bags) end,
+            Item = function(j) return itemNode(world.bags[j]) end,
+            WornSlot = function() return function() return false end end,
+            CanUse = function() return true end,
+        }, { __call = function() return 'Backpack' end })
     end
 
     local TLO = {
@@ -111,13 +137,16 @@ function M.new()
             Class = { ShortName = function() return world.class end },
             Buff = function(n) return function() return has(world.buffs, n) end end,
             Song = function(n) return function() return has(world.songs, n) end end,
-            Inventory = function(slot) return itemNode(world.slots[slot]) end,
+            Inventory = function(slot)
+                if type(slot) == 'number' then return packNode(slot) end
+                return itemNode(world.slots[slot])
+            end,
         },
         Cursor = { Name = function() return world.cursor end },
         Plugin = function(n) return { IsLoaded = function() return world.plugins[lower(n)] == true end } end,
         FindItem = function(q)
             local name = q:gsub('^=', '')
-            if indexIn(world.bags, name) or wornAnywhere(name) then return itemNode(name) end
+            if indexIn(world.bags, name) or wornAnywhere(name) or looseAnywhere(name) then return itemNode(name) end
             return itemNode(nil)
         end,
         FindItemBank = function(q)
@@ -217,8 +246,18 @@ function M.new()
             if i then ui.inputs[label] = nil return i[1], i[2] end
             return buf, false
         end,
-        BeginCombo = function(label, preview) lastItem = label; return ui.openCombo == label end,
-        Selectable = function(label, selected) lastItem = label; return false end,
+        BeginCombo = function(label, preview)
+            lastItem = label
+            ui.previews[label] = preview
+            return ui.openCombo == label and not ui.disabledDepth
+        end,
+        BeginDisabled = function() ui.disabledDepth = true; ui.disabledUsed = true end,
+        EndDisabled = function() ui.disabledDepth = nil end,
+        Selectable = function(label, selected)
+            lastItem = label
+            ui.selectables[#ui.selectables + 1] = label
+            return false
+        end,
         IsItemClicked = function() return consume(lastItem) end,
         IsItemHovered = function() return ui.hover ~= nil and ui.hover == lastItem end,
         SetTooltip = function() error('ImGui.SetTooltip must not be used (MacroQuest formats its text)') end,
@@ -285,6 +324,9 @@ function M.new()
         ui.lastButtonColor = nil
         ui.buttonX = {}
         ui.cursorX = 8
+        ui.previews = {}
+        ui.selectables = {}
+        ui.disabledUsed = false
         assert(env.draw, 'no imgui callback registered')
         env.draw()
         assert(#ui.colorStack == 0, 'PushStyleColor without matching PopStyleColor')

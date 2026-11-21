@@ -52,9 +52,39 @@ function M.findItem(name, slot)
     local it = mq.TLO.FindItem('=' .. name)
     local real = nz(it.Name())
     if not real then return nil end
-    local r = { name = real, type = nz(it.Type()) }
+    local r = { name = real, type = nz(it.Type()), canUse = it.CanUse() ~= false }
     if slot and slot ~= '' then r.canWear = it.WornSlot(slot)() == true end
     return r
+end
+
+-- General inventory slots: pack1 (23) to pack12 (34). Each holds a bag or a loose item.
+M.FIRST_PACK, M.LAST_PACK = 23, 34
+
+-- Items in your bags (plus the item worn in slot) that fit slot and that you can use.
+-- One entry per name, sorted. Returns a list of { name, type }.
+function M.equipCandidates(slot)
+    local seen, list = {}, {}
+    local function consider(it)
+        local name = nz(it.Name())
+        if not name or seen[name:lower()] then return end
+        if it.WornSlot(slot)() ~= true or it.CanUse() == false then return end
+        seen[name:lower()] = true
+        list[#list + 1] = { name = name, type = nz(it.Type()) }
+    end
+    consider(mq.TLO.Me.Inventory(slot))
+    for i = M.FIRST_PACK, M.LAST_PACK do
+        local pack = mq.TLO.Me.Inventory(i)
+        if nz(pack.Name()) then
+            local size = tonumber(pack.Container()) or 0
+            if size > 0 then
+                for j = 1, size do consider(pack.Item(j)) end
+            else
+                consider(pack)
+            end
+        end
+    end
+    table.sort(list, function(a, b) return a.name:lower() < b.name:lower() end)
+    return list
 end
 
 function M.inBank(name)
