@@ -10,7 +10,7 @@ BogoSwap is a MacroQuest Lua automation tool for EverQuest. It runs inside Macro
 
 @docs/concept.md
 
-The config keys in `docs/concept.md` (`TriggerEffectName`, `SwapEquipmentSlot`, `MatchItemName`, `NoMatchItemName`) are canonical: slash commands, the ImGui panel and the config file all use these exact names.
+The config keys in `docs/concept.md` (`TriggerEffectName`, `SwapEquipmentSlot`, `MatchItemName`, `NoMatchItemName`) are canonical: slash commands, the config file, chat messages and the TLO use these exact names. The ImGui panel shows friendly labels instead ("Trigger Effect", "Equipment Slot", "Trigger Found Item", "Trigger Missing Item"), and names the canonical key in each field's tooltip.
 
 ## How to work with me
 

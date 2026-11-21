@@ -13,6 +13,61 @@ test('the window shows paused state and status', function(m, t)
     t.contains(texts(m), 'Wanted: Rusty Sword')
 end)
 
+test('fields have friendly labels on the left and fill the row', function(m, t)
+    setup.swords(m)
+    m.start()
+    m.frame()
+    local shown = texts(m)
+    for _, label in ipairs({ 'Trigger Effect', 'Equipment Slot', 'Trigger Found Item', 'Trigger Missing Item' }) do
+        t.contains(shown, label)
+    end
+    for _, key in ipairs({ 'TriggerEffectName', 'SwapEquipmentSlot', 'MatchItemName', 'NoMatchItemName' }) do
+        t.notContains(shown, key, 'canonical names only in tooltips')
+    end
+    -- Each label is drawn before its field, and the widgets carry no visible label.
+    local order = {}
+    for i, s in ipairs(m.ui.texts) do order[s] = i end
+    t.ok(order['Trigger Effect'] < order['Equipment Slot'], 'label order')
+    t.eq(table.concat(m.ui.order, ','), '##slot,##pick_MatchItemName,##pick_NoMatchItemName')
+    for _, id in ipairs({ '##TriggerEffectName', '##slot', '##pick_MatchItemName', '##pick_NoMatchItemName' }) do
+        t.eq(m.ui.widths[id], -1, id .. ' fills the row')
+    end
+end)
+
+test('label tooltips name the canonical setting', function(m, t)
+    setup.swords(m)
+    m.start()
+    for label, key in pairs({ ['Trigger Effect'] = 'TriggerEffectName', ['Equipment Slot'] = 'SwapEquipmentSlot',
+        ['Trigger Found Item'] = 'MatchItemName', ['Trigger Missing Item'] = 'NoMatchItemName' }) do
+        m.ui.hover = 'text:' .. label
+        m.frame()
+        t.contains(texts(m), 'Setting: ' .. key .. '  (/bogoswap set ' .. key .. ' <value>)', label)
+    end
+end)
+
+test('an edited effect name leaves room for the Enter hint', function(m, t)
+    m.start()
+    m.ui.inputs['##TriggerEffectName'] = { 'Hast', false }
+    m.frame()
+    m.frame()
+    t.eq(m.ui.widths['##TriggerEffectName'], -110)
+    t.contains(texts(m), '(Enter to apply)')
+end)
+
+test('panel status uses the friendly labels; chat and the TLO keep canonical names', function(m, t)
+    m.start()
+    m.run(500)
+    m.frame()
+    t.contains(texts(m),
+        'Status: Not configured yet: set Trigger Effect, Equipment Slot, Trigger Found Item, Trigger Missing Item')
+    local dt, value = m.tlos.BogoSwap('')
+    t.contains(select(2, dt.def.Members.Status('', value)), 'set TriggerEffectName, SwapEquipmentSlot')
+    local panel = require('bogoswap.ui.panel')
+    t.eq(panel.friendly('MatchItemName and NoMatchItemName are the same item'),
+        'Trigger Found Item and Trigger Missing Item are the same item')
+    t.eq(panel.friendly("'NoMatchItemNameX' stays"), "'NoMatchItemNameX' stays", 'whole words only')
+end)
+
 test('status details collapse to just the Status line', function(m, t)
     setup.swords(m, { State = { StashedOffhandItem = 'Round Shield' } })
     m.world.slots = { mainhand = 'Rusty Sword' }
@@ -109,11 +164,11 @@ end)
 
 test('text inputs apply on Enter only', function(m, t)
     m.start()
-    m.ui.inputs['TriggerEffectName##TriggerEffectName'] = { 'Haste', false }
+    m.ui.inputs['##TriggerEffectName'] = { 'Haste', false }
     m.frame()
     t.eq(setup.readConfig(m).TriggerEffectName, '', 'not applied while typing')
     t.contains(texts(m), '(Enter to apply)')
-    m.ui.inputs['TriggerEffectName##TriggerEffectName'] = { 'Haste', true }
+    m.ui.inputs['##TriggerEffectName'] = { 'Haste', true }
     m.frame()
     t.eq(setup.readConfig(m).TriggerEffectName, 'Haste')
 end)
@@ -128,7 +183,7 @@ end)
 
 test('slot picker uses IsItemClicked', function(m, t)
     m.start()
-    m.ui.openCombo = 'SwapEquipmentSlot##slot'
+    m.ui.openCombo = '##slot'
     m.ui.clicks['offhand##slot_offhand'] = true
     m.frame()
     t.eq(setup.readConfig(m).SwapEquipmentSlot, 'offhand')
@@ -140,9 +195,9 @@ test('tooltips use BeginTooltip, never SetTooltip', function(m, t)
     m.ui.hover = 'Resume##pause'
     m.frame()
     t.contains(texts(m), 'Click to start swapping')
-    m.ui.hover = 'MatchItemName##pick_MatchItemName'
+    m.ui.hover = '##pick_MatchItemName'
     m.frame()
-    t.contains(texts(m), 'Item to equip while the effect is present')
+    t.contains(texts(m), 'Item to equip while the trigger effect is on you')
 end)
 
 test('closing the window hides it until /bogoswap ui', function(m, t)

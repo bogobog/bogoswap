@@ -26,12 +26,65 @@ local function tip(s)
     end
 end
 
-local TIPS = {
+-- Friendly labels for the panel. Commands, the config file, chat and the TLO keep the
+-- canonical names, and each field's tooltip names its canonical key.
+local LABELS = {
+    TriggerEffectName = 'Trigger Effect',
+    SwapEquipmentSlot = 'Equipment Slot',
+    MatchItemName = 'Trigger Found Item',
+    NoMatchItemName = 'Trigger Missing Item',
+}
+M.LABELS = LABELS
+
+local DESCRIPTIONS = {
     TriggerEffectName = 'Buff or song to watch for (exact name). Press Enter to apply.',
     SwapEquipmentSlot = 'Equipment slot to swap items into.',
-    MatchItemName = 'Item to equip while the effect is present. Lists items in your bags that fit the slot.',
-    NoMatchItemName = 'Item to equip while the effect is absent. Lists items in your bags that fit the slot.',
+    MatchItemName = 'Item to equip while the trigger effect is on you. Lists items in your bags that fit the slot.',
+    NoMatchItemName = 'Item to equip while the trigger effect is not on you. Lists items in your bags that fit the slot.',
 }
+
+local TIPS = {}
+for key, desc in pairs(DESCRIPTIONS) do
+    TIPS[key] = string.format('%s\nSetting: %s  (/bogoswap set %s <value>)', desc, key, key)
+end
+
+-- Replaces canonical setting names in text shown in the panel with their labels.
+-- NoMatchItemName goes first because it contains MatchItemName.
+local LABEL_ORDER = { 'NoMatchItemName', 'MatchItemName', 'TriggerEffectName', 'SwapEquipmentSlot' }
+local function friendly(s)
+    for _, key in ipairs(LABEL_ORDER) do
+        s = s:gsub('%f[%w]' .. key .. '%f[%W]', LABELS[key])
+    end
+    return s
+end
+M.friendly = friendly
+
+-- MacroQuest's ImGui bindings may return a size as two numbers or as an ImVec2.
+local function xOf(a)
+    if type(a) == 'number' then return a end
+    return a and a.x or 0
+end
+
+-- Width of the label column: the widest label plus a gap.
+local function labelColumnWidth()
+    if not ImGui.CalcTextSize then return 150 end
+    local w = 0
+    for _, label in pairs(LABELS) do
+        local x = xOf(ImGui.CalcTextSize(label))
+        if x > w then w = x end
+    end
+    return w + 16
+end
+
+-- Draws a row's label on the left and leaves the cursor where the field starts.
+-- fieldWidth is passed to SetNextItemWidth: -1 fills the row, -n leaves n pixels free.
+local function rowLabel(key, fieldWidth)
+    if ImGui.AlignTextToFramePadding then ImGui.AlignTextToFramePadding() end
+    text(LABELS[key])
+    tip(TIPS[key])
+    ImGui.SameLine(labelColumnWidth())
+    ImGui.SetNextItemWidth(fieldWidth or -1)
+end
 
 -- Why the configured item might not be swappable, shown next to it in the picker.
 local function itemMarker(state, key)
@@ -64,14 +117,14 @@ local function drawPicker(state, key)
     local ui = state.ui
     local slot = state.cfg.SwapEquipmentSlot
     local cur = state.cfg[key]
-    local label = key .. '##pick_' .. key
+    local label = '##pick_' .. key
+    rowLabel(key)
     if slot == '' then
         local canDisable = ImGui.BeginDisabled ~= nil
         if canDisable then ImGui.BeginDisabled(true) end
-        if ImGui.BeginCombo(label, cur ~= '' and cur or '(none)') then ImGui.EndCombo() end
+        local preview = (cur ~= '' and (cur .. ' ') or '') .. '(choose an equipment slot first)'
+        if ImGui.BeginCombo(label, preview) then ImGui.EndCombo() end
         if canDisable then ImGui.EndDisabled() end
-        ImGui.SameLine()
-        text('Choose SwapEquipmentSlot first.')
         ui.pickerOpen[key] = false
         return
     end
@@ -117,12 +170,6 @@ M.BUTTON_PAUSED = BUTTON_PAUSED
 
 local STOP_WIDTH = 60
 
--- MacroQuest's ImGui bindings may return a size as two numbers or as an ImVec2.
-local function xOf(a)
-    if type(a) == 'number' then return a end
-    return a and a.x or 0
-end
-
 -- Stop sits on the same row as Pause/Resume, against the right edge of the window.
 local function drawStop(state)
     ImGui.SameLine()
@@ -143,7 +190,9 @@ local function drawInput(state, key)
         ui.seen[key] = state.cfg[key]
         ui.edit[key] = state.cfg[key]
     end
-    local v, entered = ImGui.InputText(key .. '##' .. key, ui.edit[key],
+    local dirty = ui.edit[key] ~= state.cfg[key]
+    rowLabel(key, dirty and -110 or -1)  -- leave room for the "(Enter to apply)" hint
+    local v, entered = ImGui.InputText('##' .. key, ui.edit[key],
         ImGuiInputTextFlags.EnterReturnsTrue)
     if v ~= nil then ui.edit[key] = v end
     tip(TIPS[key])
@@ -161,7 +210,8 @@ end
 
 local function drawSlot(state)
     local cur = state.cfg.SwapEquipmentSlot
-    if ImGui.BeginCombo('SwapEquipmentSlot##slot', cur ~= '' and cur or '(none)') then
+    rowLabel('SwapEquipmentSlot')
+    if ImGui.BeginCombo('##slot', cur ~= '' and cur or '(none)') then
         for _, slot in ipairs(config.SLOTS) do
             ImGui.Selectable(slot .. '##slot_' .. slot, slot == cur)
             if ImGui.IsItemClicked() then
@@ -180,14 +230,14 @@ end
 local function drawStatus(state)
     local cfg = state.cfg
     local s = state.snap or {}
-    local status = state.waiting or (state.decision and state.decision.reason) or 'starting'
+    local status = friendly(state.waiting or (state.decision and state.decision.reason) or 'starting')
     -- '##' in the visible text would cut the label short.
     local header = 'Status: ' .. status:gsub('##', '# #') .. '###bogoswap_status'
     if not ImGui.CollapsingHeader(header, ImGuiTreeNodeFlags.DefaultOpen) then return end
     tip('Click to show or hide the details.')
     if s.inGame then
         text(string.format('Effect: %s', s.effectWindow and ('present (' .. s.effectWindow .. ')') or 'absent'))
-        text(string.format('%s holds: %s', cfg.SwapEquipmentSlot ~= '' and cfg.SwapEquipmentSlot or 'Slot',
+        text(string.format('%s holds: %s', cfg.SwapEquipmentSlot ~= '' and cfg.SwapEquipmentSlot or 'Equipment Slot',
             s.slotItem and s.slotItem.name or 'nothing'))
         text(string.format('Wanted: %s', (s.wantName and s.wantName ~= '') and s.wantName or '(not set)'))
     end
@@ -195,7 +245,7 @@ local function drawStatus(state)
         text('Remembered offhand: ' .. cfg.State.StashedOffhandItem)
     end
     if state.lastAction then
-        text(string.format('Last action: #%d %s', state.lastAction.n, state.lastAction.text))
+        text(string.format('Last action: #%d %s', state.lastAction.n, friendly(state.lastAction.text)))
     end
 end
 

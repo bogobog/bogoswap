@@ -235,19 +235,29 @@ function M.new()
         GetCursorPosX = function() return ui.cursorX end,
         SetCursorPosX = function(x) ui.cursorX = x end,
         GetContentRegionAvail = function() return { x = ui.windowWidth - ui.cursorX, y = 300 } end,
-        TextUnformatted = function(s) ui.texts[#ui.texts + 1] = s end,
+        TextUnformatted = function(s)
+            lastItem = 'text:' .. s
+            ui.texts[#ui.texts + 1] = s
+        end,
+        AlignTextToFramePadding = noop,
+        CalcTextSize = function(s) return { x = #s * 7, y = 13 } end,
+        -- Records the width the next widget was given, keyed by that widget's label.
+        SetNextItemWidth = function(w) ui.nextWidth = w end,
         Text = function(s, ...)
             if select('#', ...) > 0 then s = string.format(s, ...) end
             ui.texts[#ui.texts + 1] = s
         end,
         InputText = function(label, buf, flags)
             lastItem = label
+            ui.widths[label], ui.nextWidth = ui.nextWidth, nil
             local i = ui.inputs[label]
             if i then ui.inputs[label] = nil return i[1], i[2] end
             return buf, false
         end,
         BeginCombo = function(label, preview)
             lastItem = label
+            ui.widths[label], ui.nextWidth = ui.nextWidth, nil
+            ui.order[#ui.order + 1] = label
             ui.previews[label] = preview
             return ui.openCombo == label and not ui.disabledDepth
         end,
@@ -338,6 +348,9 @@ function M.new()
         ui.previews = {}
         ui.selectables = {}
         ui.headers = {}
+        ui.widths = {}
+        ui.order = {}
+        ui.nextWidth = nil
         ui.disabledUsed = false
         assert(env.draw, 'no imgui callback registered')
         env.draw()

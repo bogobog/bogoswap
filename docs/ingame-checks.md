@@ -53,5 +53,10 @@ Tick each one off once it's confirmed, and note anything that turned out differe
   - [ ] Collapsing it leaves only the Status line.
   - [ ] It stays collapsed while the status text changes (the label uses the stable id `###bogoswap_status`).
   - [ ] A long status line is readable in the header, and an item name containing `%` shows correctly in it.
+- [ ] Setting rows:
+  - [ ] Labels sit to the left in one column that's wide enough for "Trigger Missing Item" (sized with `CalcTextSize`, falling back to 150 px).
+  - [ ] Labels are vertically centred on their fields (`AlignTextToFramePadding`), and the fields fill the rest of the row (`SetNextItemWidth(-1)`).
+  - [ ] While the effect name is being edited, its field shrinks so "(Enter to apply)" fits on the row.
+  - [ ] Hovering a label or its field shows a two-line tooltip naming the setting.
 - [ ] Clicking Stop ends the script cleanly: the window closes, `/bogoswap` is unbound, and `${BogoSwap}` is gone.
 - [ ] `ImGui.PushStyleColor(ImGuiCol.Button, r, g, b, a)` (four floats) is accepted. The pause button is blue while paused and green while running, with lighter/darker shades on hover/click, and nothing else in the window changes colour.

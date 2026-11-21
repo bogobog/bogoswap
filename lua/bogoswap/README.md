@@ -23,12 +23,14 @@ The startup message says so, and the window shows a **Resume** button.
 
 ## Settings
 
-| Setting | Meaning |
-|---|---|
-| `TriggerEffectName` | The buff to watch for. Both the buff window and the song window count. |
-| `SwapEquipmentSlot` | The equipment slot to swap into, such as `mainhand`, `offhand`, `range` or `charm` (`primary` and `secondary` also work). |
-| `MatchItemName` | The item to equip while the effect is on you. |
-| `NoMatchItemName` | The item to equip while it isn't. |
+| Setting | Label in the window | Meaning |
+|---|---|---|
+| `TriggerEffectName` | Trigger Effect | The buff to watch for. Both the buff window and the song window count. |
+| `SwapEquipmentSlot` | Equipment Slot | The equipment slot to swap into, such as `mainhand`, `offhand`, `range` or `charm` (`primary` and `secondary` also work). |
+| `MatchItemName` | Trigger Found Item | The item to equip while the effect is on you. |
+| `NoMatchItemName` | Trigger Missing Item | The item to equip while it isn't. |
+
+Commands, the config file, chat messages and `${BogoSwap}` use the setting names. The window uses the labels, and hovering over a label or field shows its setting name.
 
 Item and effect names must match exactly; capitalization doesn't matter.
 Set them with `/bogoswap set` or in the window (press Enter after typing the effect name; the items and the slot are picked from lists).
@@ -94,13 +96,13 @@ The window has:
 - a Pause/Resume button, green while BogoSwap is running and blue while it's paused,
 - a Stop button at the right of the same row, which stops BogoSwap entirely, like `/bogoswap quit`,
 - a collapsible status section. Its header is the current status. Expanding it (the default) also shows the effect's state, what the slot holds, what BogoSwap wants there, any remembered offhand item, and the last action. Collapsed, only the status line shows,
-- the four settings. `MatchItemName` and `NoMatchItemName` are item pickers:
+- the four settings, one per row, with the label on the left and the field filling the rest of the row. Trigger Found Item and Trigger Missing Item are item pickers:
   - Each lists the items in your bags, plus the item worn in the slot, that fit `SwapEquipmentSlot` and that your character can use.
   - Duplicates appear once, and two-handers are tagged "(2H)" when the slot is `mainhand`.
   - Type in the search box at the top to narrow the list. "(none)" clears the setting.
   - Your bags are read each time you open a picker. Click **Refresh** if they change while it's open.
   - If the chosen item isn't in your bags, can't be worn in the slot, or you can't use it, the picker says so next to its name.
-  - Choose a slot first; until then the pickers are greyed out.
+  - Choose an Equipment Slot first; until then the pickers are greyed out and say so.
   - To set an item that isn't in your bags right now, use `/bogoswap set`.
 
 Closing the window doesn't stop BogoSwap; `/bogoswap ui` brings it back.

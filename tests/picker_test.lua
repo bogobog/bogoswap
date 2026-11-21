@@ -1,7 +1,7 @@
 local setup = require('setup')
 
-local MATCH = 'MatchItemName##pick_MatchItemName'
-local NOMATCH = 'NoMatchItemName##pick_NoMatchItemName'
+local MATCH = '##pick_MatchItemName'
+local NOMATCH = '##pick_NoMatchItemName'
 
 -- Item names offered in the open picker for key, without tags or ImGui ids.
 local function offered(m, key)
@@ -145,7 +145,10 @@ test('without a slot the pickers are disabled with a hint', function(m, t)
     t.ok(m.ui.disabledUsed, 'BeginDisabled used')
     t.eq(offered(m, 'MatchItemName'), '', 'does not open')
     t.eq(m.packScans, 0, 'no scan')
-    t.contains(table.concat(m.ui.texts, '\n'), 'Choose SwapEquipmentSlot first.')
+    t.eq(m.ui.previews[MATCH], '(choose an equipment slot first)')
+    m.command('/bogoswap set MatchItemName Rusty Sword')
+    m.frame()
+    t.eq(m.ui.previews[MATCH], 'Rusty Sword (choose an equipment slot first)')
 end)
 
 test('scans are logged in the ui channel', function(m, t)
