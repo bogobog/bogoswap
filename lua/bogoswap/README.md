@@ -15,7 +15,7 @@ It runs inside MacroQuest, one copy per character.
 
     /lua run bogoswap            starts PAUSED
     /lua run bogoswap pause=no   starts running
-    /bogoswap quit               stops it (or /lua stop bogoswap)
+    /bogoswap quit               stops it (or the window's Stop button, or /lua stop bogoswap)
 
 BogoSwap **starts paused** so that it never swaps anything before you've checked its settings.
 The startup message says so, and the window shows a **Resume** button.
@@ -92,6 +92,7 @@ When the slot is `offhand` and a two-hander is in mainhand, BogoSwap can't swap,
 The window has:
 
 - a Pause/Resume button, green while BogoSwap is running and blue while it's paused,
+- a Stop button at the right of the same row, which stops BogoSwap entirely, like `/bogoswap quit`,
 - the effect's state, what the slot holds, and what BogoSwap wants there,
 - the current status and the last action,
 - the four settings.

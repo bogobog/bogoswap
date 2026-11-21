@@ -13,5 +13,5 @@
 [BogoSwap] #7 swap command: /exchange "Rusty Sword" mainhand
 [BogoSwap] #7 swap verified: mainhand now holds 'Rusty Sword'
 [BogoSwap] #8 swap 'Spirit of Wolf' absent; mainhand holds 'Rusty Sword' as wanted
-[BogoSwap] #9 cmd quit requested
+[BogoSwap] #9 cmd quit requested by command
 [BogoSwap] Stopped.

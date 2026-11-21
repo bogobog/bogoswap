@@ -39,6 +39,28 @@ local BUTTON_PAUSED = { { 0.15, 0.35, 0.75, 1 }, { 0.22, 0.45, 0.88, 1 }, { 0.11
 M.BUTTON_RUNNING = BUTTON_RUNNING
 M.BUTTON_PAUSED = BUTTON_PAUSED
 
+local STOP_WIDTH = 60
+
+-- MacroQuest's ImGui bindings may return a size as two numbers or as an ImVec2.
+local function xOf(a)
+    if type(a) == 'number' then return a end
+    return a and a.x or 0
+end
+
+-- Stop sits on the same row as Pause/Resume, against the right edge of the window.
+local function drawStop(state)
+    ImGui.SameLine()
+    local avail = xOf(ImGui.GetContentRegionAvail())
+    if avail > STOP_WIDTH then
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + avail - STOP_WIDTH)
+    end
+    if ImGui.Button('Stop##stop', STOP_WIDTH, 0) then
+        commands.quit(state, 'ui')
+        log.info('Stopping (Stop button).')
+    end
+    tip('Stop BogoSwap entirely, like /bogoswap quit.')
+end
+
 local function drawInput(state, key)
     local ui = state.ui
     if ui.seen[key] ~= state.cfg[key] then
@@ -118,6 +140,7 @@ function M.draw(state)
             or 'Click to stop swapping. BogoSwap keeps watching.')
         ImGui.SameLine()
         text(state.paused and 'PAUSED: taking no action' or 'Running')
+        drawStop(state)
         ImGui.Separator()
         drawStatus(state)
         ImGui.Separator()

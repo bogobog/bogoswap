@@ -74,6 +74,13 @@ function M.setPaused(state, paused, source)
     log.resetNote('status')
 end
 
+-- Ends the main loop; init.lua then unbinds commands, removes the TLO and exits.
+function M.quit(state, source)
+    state.running = false
+    local n = log.nextAction()
+    log.debug(source == 'ui' and 'ui' or 'cmd', n, 'quit requested by %s', source)
+end
+
 local HELP = {
     'Usage: /bogoswap <command>   (alias /bswap)',
     '  set <Setting> <value>   set TriggerEffectName, SwapEquipmentSlot, MatchItemName or NoMatchItemName (no value clears it)',
@@ -180,9 +187,7 @@ function M.handle(state, ...)
     elseif sub == 'debug' then
         debugCmd(state, a[2], a[3])
     elseif sub == 'quit' or sub == 'stop' or sub == 'exit' then
-        state.running = false
-        local n = log.nextAction()
-        log.debug('cmd', n, 'quit requested')
+        M.quit(state, 'command')
     elseif sub == 'help' then
         for _, line in ipairs(HELP) do log.info('%s', line) end
     else

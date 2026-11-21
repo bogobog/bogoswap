@@ -47,6 +47,29 @@ test('the pause button is blue while paused and green while running', function(m
     t.ok(same(m.ui.lastButtonColor, panel.BUTTON_PAUSED[1]), 'blue after clicking Pause')
 end)
 
+test('Stop sits at the right edge, on the Pause row', function(m, t)
+    m.start()
+    m.frame()
+    t.eq(m.ui.calls[1], 'Button:Resume##pause')
+    t.eq(m.ui.calls[2], 'Button:Stop##stop', 'Stop is the next widget after Pause')
+    t.eq(m.ui.buttonX['Stop##stop'], m.ui.windowWidth - 60, 'right-aligned')
+    t.ok(m.ui.buttonX['Stop##stop'] > m.ui.buttonX['Resume##pause'], 'right of Pause')
+end)
+
+test('the Stop button ends BogoSwap like /bogoswap quit', function(m, t)
+    setup.swords(m)
+    m.start('pause=no')
+    m.run(500)
+    m.ui.clicks['Stop##stop'] = true
+    m.frame()
+    m.step(2)
+    t.ok(m.finished, 'script ended')
+    t.eq(m.binds['/bogoswap'], nil, 'command unbound')
+    t.eq(m.tlos.BogoSwap, nil, 'TLO removed')
+    t.contains(m.output(), 'Stopping (Stop button).')
+    t.contains(m.output(), 'Stopped.')
+end)
+
 test('text inputs apply on Enter only', function(m, t)
     m.start()
     m.ui.inputs['TriggerEffectName##TriggerEffectName'] = { 'Haste', false }

@@ -179,6 +179,7 @@ function M.new()
 
     -- ImGui: env.ui scripts what the next frame's widgets return.
     local ui = { clicks = {}, inputs = {}, texts = {}, calls = {}, colorStack = {},
+        buttonX = {}, cursorX = 8, windowWidth = 400,
         openCombo = nil, hover = nil, closeWindow = false }
     env.ui = ui
     local lastItem
@@ -193,8 +194,18 @@ function M.new()
             if ui.closeWindow then ui.closeWindow = false return false, true end
             return true, true
         end,
-        End = noop, SameLine = noop, Separator = noop, BeginTooltip = noop, EndTooltip = noop, EndCombo = noop,
-        Button = function(label) lastItem = label; ui.calls[#ui.calls + 1] = 'Button:' .. label; return consume(label) end,
+        SameLine = function() ui.cursorX = 150 end,
+        End = noop, Separator = noop, BeginTooltip = noop, EndTooltip = noop, EndCombo = noop,
+        Button = function(label, w, h)
+            lastItem = label
+            ui.calls[#ui.calls + 1] = 'Button:' .. label
+            ui.buttonX[label] = ui.cursorX
+            return consume(label)
+        end,
+        -- A fixed-size window: 400 wide, and everything before SameLine uses 150 of it.
+        GetCursorPosX = function() return ui.cursorX end,
+        SetCursorPosX = function(x) ui.cursorX = x end,
+        GetContentRegionAvail = function() return { x = ui.windowWidth - ui.cursorX, y = 300 } end,
         TextUnformatted = function(s) ui.texts[#ui.texts + 1] = s end,
         Text = function(s, ...)
             if select('#', ...) > 0 then s = string.format(s, ...) end
@@ -272,6 +283,8 @@ function M.new()
         ui.calls = {}
         ui.colorStack = {}
         ui.lastButtonColor = nil
+        ui.buttonX = {}
+        ui.cursorX = 8
         assert(env.draw, 'no imgui callback registered')
         env.draw()
         assert(#ui.colorStack == 0, 'PushStyleColor without matching PopStyleColor')
