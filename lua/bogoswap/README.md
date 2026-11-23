@@ -15,11 +15,15 @@ It runs inside MacroQuest, one copy per character.
 
     /lua run bogoswap            starts PAUSED
     /lua run bogoswap pause=no   starts running
+    /lua run bogoswap minimize   starts with only the BS button showing (see below)
     /bogoswap quit               stops it (or the window's Stop button, or /lua stop bogoswap)
 
 BogoSwap **starts paused** so that it never swaps anything before you've checked its settings.
 The startup message says so, and the window shows a **Resume** button.
 `pause=` also accepts `false`, `off`, `0` and `n` (or `yes`, `true`, `on`, `1`, `y` to keep the default).
+
+BogoSwap starts with the full window unless you give `minimize` (the same as `minimize=yes`), which starts it minimized to the BS button.
+`minimize=` takes the same values as `pause=`, and the two can be combined in any order: `/lua run bogoswap pause=no minimize`.
 
 ## Settings
 
@@ -121,7 +125,7 @@ The window has:
 
 Closing the window doesn't stop BogoSwap; `/bogoswap ui` brings it back.
 
-`_` minimizes the window to a small **BS** button with no title bar. You can drag it anywhere, and it remembers where you put it. BS is green while BogoSwap is running and blue while it's paused. Click it to restore the full window, or right-click it to pause or resume without restoring the window. BogoSwap keeps working while minimized, and it always starts with the full window.
+`_` minimizes the window to a small **BS** button with no title bar. You can drag it anywhere, and it remembers where you put it. BS is green while BogoSwap is running and blue while it's paused. Click it to restore the full window, or right-click it to pause or resume without restoring the window. BogoSwap keeps working while minimized. Minimizing isn't saved: BogoSwap starts with the full window unless you start it with `minimize`.
 
 ## Debug log
 

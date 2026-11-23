@@ -1,4 +1,4 @@
-[00:16:40] [BogoSwap] #2 cmd started running (pause=no)
+[00:16:40] [BogoSwap] #2 cmd started running (pause=no), full window (default)
 [BogoSwap] v<VERSION> started and running (pause=no). /bogoswap pause to pause.
 [BogoSwap] /bogoswap help lists commands.
 [00:16:40] [BogoSwap] #3 swap 'Spirit of Wolf' absent; mainhand holds 'Fine Steel Sword' as wanted

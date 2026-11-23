@@ -1,10 +1,11 @@
 -- BogoSwap: swap an item into an equipment slot depending on whether a buff is present.
 -- Start: /lua run bogoswap            (starts paused)
 --        /lua run bogoswap pause=no   (starts running)
+--        /lua run bogoswap minimize   (starts with only the BS button showing)
 local mq = require('mq')
 require('ImGui')
 
-local VERSION = '0.11.1'
+local VERSION = '0.12.0'
 
 local log = require('bogoswap.core.log')
 local args = require('bogoswap.core.args')
@@ -27,18 +28,22 @@ local state = {
     version = VERSION,
     running = true,
     paused = opts.pause,
-    ui = { open = true, minimized = false, edit = {}, seen = {}, pickerOpen = {} },
+    ui = { open = true, minimized = opts.minimize, edit = {}, seen = {}, pickerOpen = {} },
 }
 state.cfg, state.cfgPath = config.load(game.server(), game.charName())
 log.applyChannels(state.cfg.Debug)
 
 local n = log.nextAction()
-log.debug('cmd', n, 'started %s (%s)', opts.pause and 'paused' or 'running', opts.pauseSource)
+log.debug('cmd', n, 'started %s (%s), %s (%s)', opts.pause and 'paused' or 'running', opts.pauseSource,
+    opts.minimize and 'minimized' or 'full window', opts.minimizeSource)
 if opts.pause then
     log.info('v%s started \ayPAUSED\ax. Click Resume in the BogoSwap window or type /bogoswap resume.', VERSION)
     log.info('To start running instead: /lua run bogoswap pause=no')
 else
     log.info('v%s started and running (%s). /bogoswap pause to pause.', VERSION, opts.pauseSource)
+end
+if opts.minimize then
+    log.info('Started minimized. Click BS (or /bogoswap ui) to restore the window.')
 end
 for _, w in ipairs(commands.validate(state)) do log.warn('%s', w) end
 if not game.exchangeLoaded() then

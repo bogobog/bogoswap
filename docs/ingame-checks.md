@@ -76,6 +76,7 @@ Tick each one off once it's confirmed, and note anything that turned out differe
   - [ ] The BS window has no title bar, fits snugly around the button, and can be dragged. It reopens where it was left, including after a restart.
   - [ ] `ImGui.Begin(name, true, flags)` works with the flags, and `SetNextWindowPos(ImVec2(20, 20), ImGuiCond.FirstUseEver)` is accepted (on first use it opens near the top-left).
   - [ ] BS is green while running and blue while paused.
+  - [ ] `/lua run bogoswap minimize` (and `minimize=yes`) starts with only the BS button, at its remembered position, and the startup message says so. A plain `/lua run bogoswap` opens the full window. Check that MacroQuest passes a bare `minimize` through to the script as an argument.
   - [ ] Right-clicking BS toggles pause (`IsItemClicked(ImGuiMouseButton.Right)` after the button), turns it green or blue, and doesn't restore the window. A left click still restores it.
 - [ ] Clicking Stop ends the script cleanly: the window closes, `/bogoswap` is unbound, and `${BogoSwap}` is gone.
 - [ ] `ImGui.PushStyleColor(ImGuiCol.Button, r, g, b, a)` (four floats) is accepted. The pause button is blue while paused and green while running, with lighter/darker shades on hover/click, and nothing else in the window changes colour.
