@@ -1,0 +1,85 @@
+# Builds a release zip of lua/ and config/ for every commit pushed to master.
+# Each release is tagged v<VERSION>-<short sha>, with VERSION read from
+# lua/bogoswap/init.lua. The test suite must pass first.
+name: Release
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+# One release run at a time, in push order; a newer push never cancels an older one.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Install LuaJIT and luafilesystem
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq luajit lua-filesystem
+          # Debian/Ubuntu install lfs.so in the multiarch Lua 5.1 directory.
+          echo "LUA_CPATH=/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/lua/5.1/?.so;;" >> "$GITHUB_ENV"
+
+      - name: Run tests
+        run: |
+          luajit -e 'require("lfs")'
+          luajit tests/run.lua
+
+      - name: Read version and name the release
+        id: meta
+        run: |
+          version=$(sed -n "s/^local VERSION = '\([^']*\)'.*/\1/p" lua/bogoswap/init.lua)
+          if [ -z "$version" ]; then
+            echo "::error file=lua/bogoswap/init.lua::Could not find the VERSION line"
+            exit 1
+          fi
+          short=$(git rev-parse --short=7 HEAD)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version-$short" >> "$GITHUB_OUTPUT"
+          echo "zip=bogoswap-$version.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Build the zip
+        run: zip -r -q "${{ steps.meta.outputs.zip }}" lua config
+
+      - name: Write release notes
+        run: |
+          {
+            git log -1 --format=%B
+            echo
+            echo "Commit: $GITHUB_SHA"
+            echo
+            echo "## Installing"
+            echo
+            echo "Extract the zip into your MacroQuest folder. It contains \`lua/bogoswap/\` (the script)"
+            echo "and \`config/bogoswap/defaults.lua\` (a reference copy of the default settings;"
+            echo "BogoSwap writes its own defaults to \`<MQ config>/BogoSwap/\` the first time it runs)."
+            echo
+            echo "Start it with \`/lua run bogoswap\`."
+          } > notes.md
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          ZIP: ${{ steps.meta.outputs.zip }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "::notice::Release $TAG already exists; leaving it unchanged."
+            exit 0
+          fi
+          gh release create "$TAG" "$ZIP" \
+            --target "$GITHUB_SHA" \
+            --title "BogoSwap $VERSION ($(git rev-parse --short=7 HEAD))" \
+            --notes-file notes.md \
+            --latest
